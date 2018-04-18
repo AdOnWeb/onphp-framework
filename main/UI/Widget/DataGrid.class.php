@@ -630,7 +630,19 @@ class DataGrid extends BaseWidget
         if (is_array($value))
 			return function($value) use ($self) {
 				try {
-					return DataGrid::table()->setParent($self)->addRows($value)->ToString();
+                    $keys = array_keys($value);
+                    $isAssoc = array_keys($keys) !== $keys;
+					if ($isAssoc) {
+					    $datagrid = DataGrid::details()
+					        ->addRow($value);
+                    } else {
+                        $datagrid = DataGrid::table()
+                            ->hideSorting()
+					        ->addRows($value);
+                    }
+                    return $datagrid
+                        ->setParent($self)
+                        ->toString();
 				} catch (Exception $e) {
                     return $e->getMessage();
 				}
