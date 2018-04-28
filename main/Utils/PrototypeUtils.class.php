@@ -103,7 +103,7 @@ class PrototypeUtils
      * @param $path
      * @return mixed
      */
-    public static function getValue(Prototyped $object, $path) {
+    public static function getValue($object, $path) {
         $path = preg_split('/[\\:\\.]/', $path);
         foreach ($path as $field) {
             $getter = 'get' . ucfirst($field);
@@ -122,7 +122,7 @@ class PrototypeUtils
      * @param $value
      * @throws WrongArgumentException
      */
-    public static function setValue(Prototyped $object, $path, $value) {
+    public static function setValue($object, $path, $value) {
         $path = explode('.', $path);
         $valueName = array_pop($path);
         if ($path) {
