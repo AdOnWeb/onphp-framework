@@ -244,7 +244,7 @@ class ReplicatedDB extends MultiDB
                         if ($insertedRows != 1) {
                             throw new WrongStateException(
                                 $insertedRows.' rows affected: racy or insane inject happened: '
-                                .$insertQuery->toDialectString($this->getDialect())
+                                .$this->getDialect()->queryToString($insertQuery)
                             );
                         }
                     }

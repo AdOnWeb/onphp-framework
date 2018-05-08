@@ -181,5 +181,14 @@
 		{
 			throw new UnimplementedFeatureException();
 		}
+
+        public function queryToString(Query $query)
+        {
+            try {
+                return $query->toDialectString($this);
+            } catch (Exception $e) {
+                throw new QueryPreparationException($e->getMessage(), $e->getCode(), $e, $query);
+            }
+		}
 	}
 ?>
