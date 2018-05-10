@@ -22,7 +22,7 @@ class Profiling {
 		}
 		$self->tags = $tags;
 		$self->info = $info;
-		$backtrace = debug_backtrace();
+		$backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 		array_shift($backtrace);
 		$self->trace = $backtrace;
 		return $self;
@@ -159,7 +159,9 @@ class Profiling {
 						else if (is_callable($arg)) return '{closure}';
 						else return '{unknown}';
 					}, $bt['args']));
-				}
+				} else {
+				    $string .= '...';
+                }
 				$string .= ')';
 				return $string;
 			},
