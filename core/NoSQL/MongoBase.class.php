@@ -142,11 +142,11 @@ class MongoBase extends NoSQL {
 	 * @return bool
 	 */
 	public function isConnected() {
-	    if ($this->link instanceof Mongo) {
-	        return $this->link->connected;
-        }
-        if ($this->link instanceof MongoClient) {
-	        return $this->link->connected;
+	    if ($this->link) {
+	        $link = (array)$this->link;
+	        if (isset($link['connected']) && $link['connected']) {
+	            return true;
+            }
         }
         return false;
 	}
