@@ -352,8 +352,7 @@ class ShardedDB extends MultiDB
 
         // next we do the sorting
         usort($result, function ($rowA, $rowB) use ($query, $orderBy) {
-            foreach ($orderBy as $order) {
-                $fieldName = $this->resolveToAlias($query, $order->getFieldName());
+            foreach ($orderBy as $fieldName => $order) {
                 $fieldA = $rowA[$fieldName];
                 $fieldB = $rowB[$fieldName];
                 if ($fieldA === null || $fieldB === null) {
