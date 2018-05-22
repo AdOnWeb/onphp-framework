@@ -347,6 +347,26 @@ class Date implements Stringable, DialectString, JsonSerializable
 
 	}
 
+    public static function max(self $date1, self $date2, self $dateN = null)
+    {
+        return array_reduce(func_get_args(), function (self $max = null, self $date) {
+            if ($max === null) {
+                return $date;
+            }
+            return $date->toStamp() > $max->toStamp() ? $date : $max;
+        });
+	}
+
+    public static function min(self $date1, self $date2, self $dateN = null)
+    {
+        return array_reduce(func_get_args(), function (self $min = null, self $date) {
+            if ($min === null) {
+                return $date;
+            }
+            return $date->toStamp() < $min->toStamp() ? $date : $min;
+        });
+	}
+
     public function jsonSerialize()
     {
         return $this->toString();
