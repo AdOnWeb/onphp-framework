@@ -351,14 +351,14 @@ class ShardedDB extends MultiDB
         }
 
         // next we do the sorting
-        foreach ($orderBy as $order) {
-            usort($result, function ($rowA, $rowB) use ($query, $order) {
+        usort($result, function ($rowA, $rowB) use ($query, $orderBy) {
+            foreach ($orderBy as $order) {
                 $fieldName = $this->resolveToAlias($query, $order->getFieldName());
                 $fieldA = $rowA[$fieldName];
                 $fieldB = $rowB[$fieldName];
                 if ($fieldA === null || $fieldB === null) {
                     if ($fieldA === null && $fieldB === null) {
-                        return 0;
+                        continue;
                     }
                     if ($fieldA === null) {
                         return $order->isNullsFirst() ? -1 : 1;
@@ -373,9 +373,9 @@ class ShardedDB extends MultiDB
                 if ($fieldA < $fieldB) {
                     return $order->isAsc() ? -1 : 1;
                 }
-                return 0;
-            });
-        }
+            }
+            return 0;
+        });
 
         // finally do the limiting
         if ($offset || $limit) {
