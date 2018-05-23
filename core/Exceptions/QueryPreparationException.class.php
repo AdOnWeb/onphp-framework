@@ -18,7 +18,7 @@ class QueryPreparationException extends DatabaseException
     {
         $this->query = $query;
 
-        if (__LOCAL_DEBUG__) {
+        if (defined('__LOCAL_DEBUG__') && __LOCAL_DEBUG__) {
             $message .= "\r\n\r\nQuery dump: " . print_r($query, true);
         }
 
