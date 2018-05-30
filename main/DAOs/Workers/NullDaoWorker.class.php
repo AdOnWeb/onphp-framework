@@ -21,22 +21,22 @@
 	{
 		/// single object getters
 		//@{
-		public function getById($id)
+		public function getById($id, $expires = null)
 		{
 			return parent::getById($id, Cache::DO_NOT_CACHE);
 		}
 		
-		public function getByLogic(LogicalObject $logic)
+		public function getByLogic(LogicalObject $logic, $expires = null)
 		{
 			return parent::getByLogic($logic, Cache::DO_NOT_CACHE);
 		}
 		
-		public function getByQuery(SelectQuery $query)
+		public function getByQuery(SelectQuery $query, $expires = null)
 		{
 			return parent::getByQuery($query, Cache::DO_NOT_CACHE);
 		}
 		
-		public function getCustom(SelectQuery $query)
+		public function getCustom(SelectQuery $query, $expires = null)
 		{
 			return parent::getCustom($query, Cache::DO_NOT_CACHE);
 		}
@@ -44,7 +44,7 @@
 		
 		/// object's list getters
 		//@{
-		public function getListByIds(array $ids)
+		public function getListByIds(array $ids, $expires = null)
 		{
 			try {
 				return
@@ -62,17 +62,17 @@
 			}
 		}
 		
-		public function getListByQuery(SelectQuery $query)
+		public function getListByQuery(SelectQuery $query, $expires = null)
 		{
 			return parent::getListByQuery($query, Cache::DO_NOT_CACHE);
 		}
 		
-		public function getListByLogic(LogicalObject $logic)
+		public function getListByLogic(LogicalObject $logic, $expires = null)
 		{
 			return parent::getListByLogic($logic, Cache::DO_NOT_CACHE);
 		}
 		
-		public function getPlainList()
+		public function getPlainList($expires = null)
 		{
 			return parent::getPlainList(Cache::DO_NOT_CACHE);
 		}
@@ -80,12 +80,12 @@
 		
 		/// custom list getters
 		//@{
-		public function getCustomList(SelectQuery $query)
+		public function getCustomList(SelectQuery $query, $expires = null)
 		{
 			return parent::getCustomList($query, Cache::DO_NOT_CACHE);
 		}
 		
-		public function getCustomRowList(SelectQuery $query)
+		public function getCustomRowList(SelectQuery $query, $expires = null)
 		{
 			return parent::getCustomRowList($query, Cache::DO_NOT_CACHE);
 		}
@@ -93,7 +93,7 @@
 		
 		/// query result getters
 		//@{
-		public function getQueryResult(SelectQuery $query)
+		public function getQueryResult(SelectQuery $query, $expires = null)
 		{
 			return parent::getQueryResult($query, Cache::DO_NOT_CACHE);
 		}

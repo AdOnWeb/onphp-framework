@@ -19,7 +19,7 @@ final class TimestampTZType extends DateType
 		return 'timestampTZ';
 	}
 
-	public function toColumnType()
+	public function toColumnType($length = null)
 	{
 		return 'DataType::create(DataType::TIMESTAMPTZ)->setTimezoned(true)';
 	}

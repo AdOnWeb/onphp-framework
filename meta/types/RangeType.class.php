@@ -19,7 +19,7 @@
 			return 'range';
 		}
 		
-		public function toColumnType()
+		public function toColumnType($length = null)
 		{
 			return null;
 		}

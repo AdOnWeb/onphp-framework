@@ -24,7 +24,7 @@
 			return true;
 		}
 		
-		public function toColumnType()
+		public function toColumnType($length = null)
 		{
 			return 'DataType::create(DataType::DATE)';
 		}
