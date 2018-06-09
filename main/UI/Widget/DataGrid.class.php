@@ -522,9 +522,9 @@ class DataGrid extends BaseWidget
 			case 'date': {
 				return function ($value) {
 					if( $value instanceof Timestamp ) {
-						return $value->toFormatString('d-m-Y H:i:s');
+						return $value->toFormatString('Y-m-d H:i:s');
 					} elseif( $value instanceof Date ) {
-						return $value->toFormatString('d-m-Y');
+						return $value->toFormatString('Y-m-d');
 					} else {
 						return '';
 					}
