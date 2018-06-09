@@ -212,11 +212,12 @@ class ShardedDB extends MultiDB
             'count' => function ($v, $acc) { return $acc + $v; },
             'min'   => function ($v, $acc) { return min($v, $acc); },
             'max'   => function ($v, $acc) { return max($v, $acc); },
-            'avg'   => function ($v, $acc) {
+            'avg'   => function ($v, $acc, $row, $field) {
+                $n = $row[$field . '_count'];
                 if (!is_array($acc)) {
-                    $acc = [ 'sum' => $acc, 'n' => 1 ];
+                    $acc = [ 'sum' => 0, 'n' => 0 ];
                 }
-                return [ 'sum' => $acc['sum'] + $v, 'n' => $acc['n'] + 1 ];
+                return [ 'sum' => $acc['sum'] + $v * $n, 'n' => $acc['n'] + $n ];
              },
         ];
         // some aggregations require finishing procedure
@@ -226,7 +227,16 @@ class ShardedDB extends MultiDB
                     // in case there was only 1 row in group and reducer did not run
                     return $acc;
                 }
+                if ($acc['n'] == 0) {
+                    return 0;
+                }
                 return $acc['sum'] / $acc['n'];
+            }
+        ];
+        // some aggregations require to modify query in some way
+        $aggregateQueryProcessors = [
+            'avg' => function (SelectQuery $query, SQLFunction $aggregate, $alias) {
+                $query->get(SQLFunction::create('count', $aggregate->getArg(0)), $alias . '_count');
             }
         ];
         $needsFinalizers = false;
@@ -237,13 +247,16 @@ class ShardedDB extends MultiDB
             if ($field instanceof SQLFunction) {
                 $functionName = strtolower($field->getName());
                 $functionAlias = $selectField->getAlias() ?: $field->getAlias();
+                assert(!empty($functionAlias), 'aggregated field should be aliased');
                 if (array_key_exists($functionName, $aggregateReducers)) {
-                    assert(!empty($functionAlias), 'aggregated field should be aliased');
-
                     $aggregates[$functionAlias] = $functionName;
-                    if (array_key_exists($functionName, $aggregateFinalizers)) {
-                        $needsFinalizers = true;
-                    }
+                }
+                if (array_key_exists($functionName, $aggregateQueryProcessors)) {
+                    $queryProcessor = $aggregateQueryProcessors[$functionName];
+                    $queryProcessor($query, $field, $functionAlias);
+                }
+                if (array_key_exists($functionName, $aggregateFinalizers)) {
+                    $needsFinalizers = true;
                 }
                 $fields[$functionAlias] = true;
             } else {
@@ -328,7 +341,9 @@ class ShardedDB extends MultiDB
                 foreach ($aggregates as $aggregateField => $aggregateFunctionName) {
                     $groupedResult[$groupKey][$aggregateField] = $aggregateReducers[$aggregateFunctionName](
                         $row[$aggregateField],
-                        $groupedResult[$groupKey][$aggregateField]
+                        $groupedResult[$groupKey][$aggregateField],
+                        $row,
+                        $aggregateField
                     );
                 }
             }

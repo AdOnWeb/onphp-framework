@@ -63,7 +63,20 @@
 		{
 			return $this->name;
 		}
-		
+
+		public function getArgs()
+		{
+			return $this->args;
+		}
+
+		public function getArg($index)
+		{
+		    if (!isset($this->args[$index])) {
+		        return null;
+            }
+			return $this->args[$index];
+		}
+
 		/**
 		 * @return SQLFunction
 		**/
