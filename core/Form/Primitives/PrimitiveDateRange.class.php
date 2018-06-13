@@ -103,8 +103,8 @@
 					return true;
 				}
 			}
-			
-			return false;
+
+            return null;
 		}
 		
 		protected function getObjectName()
