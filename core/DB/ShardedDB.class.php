@@ -300,11 +300,19 @@ class ShardedDB extends MultiDB
         }
 
         // finally save ordering, we can use original OrderBy for later, but make sure it's sort by field, not function
-        foreach ($query->getOrderChain()->getList() as $order) {
-            assert($order->getField() instanceof DBField, 'can not order by ' . get_class($order->getField()));
-            $orderFieldName = $this->resolveToAlias($query, $order->getFieldName());
-            $orderBy[$orderFieldName] = $order;
-        }
+        $orderParser = function (OrderChain $orderChain) use ($query, &$orderBy, &$orderParser) {
+            foreach ($orderChain->getList() as $order) {
+                assert($order->getField() instanceof DBField, 'can not order by ' . get_class($order->getField()));
+                $orderField = $this->resolveToAlias($query, $order->getFieldName());
+                if ($orderField instanceof OrderChain) {
+                    // nested orderchain
+                    $orderParser($orderField);
+                } else {
+                    $orderBy[$orderField] = $order;
+                }
+            }
+        };
+        $orderParser($query->getOrderChain());
 
         // actually do the query and merge all rows into one set
         $result = [];
