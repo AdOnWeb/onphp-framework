@@ -267,5 +267,22 @@
 			return $one;
 		}
 
+        /**
+         *
+         * @param $array
+         * @param callable $mapFunction(mixed $value, string $key)
+         * @return array
+         */
+        public static function map($array, $mapFunction)
+        {
+            $result = [];
+            foreach ($array as $key => $value) {
+                // $key may be modified when passed by ref!
+                $newValue = $mapFunction($value, $key);
+                $result[$key] = $newValue;
+            }
+            return $result;
+		}
+
 	}
 ?>
