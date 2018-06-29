@@ -51,7 +51,36 @@
 		{
 			return $this->exportValue();
 		}
-		
+
+        public function getSafeValue()
+        {
+            return $this->getValue() ?: $this->getDefault();
+		}
+
+        public function getRawValue()
+        {
+            if (is_array($this->raw)) {
+                return Hstore::make($this->raw);
+            } else if ($this->raw === null) {
+                return null;
+            } else {
+                return Hstore::make([]);
+            }
+		}
+
+        public function getActualValue()
+        {
+            $value  = $this->getValue();
+            $raw    = $this->getRawValue();
+
+            if (null !== $value)
+                return $value;
+            elseif ($this->imported)
+                return $raw;
+
+            return $this->getDefault();
+		}
+
 		/**
 		 * @throws WrongArgumentException
 		 * @return boolean
@@ -80,13 +109,12 @@
 			if (!isset($scope[$this->name]))
 				return null;
 			
-			$this->rawValue = $scope[$this->name];
+			$this->raw = $scope[$this->name];
 			
 			if (!$this->value instanceof Form)
 				$this->value = $this->makeForm();
 			
-			$this->value->import($this->rawValue);
-			
+			$this->value->import($this->raw);
 			$this->imported = true;
 			
 			if ($this->value->getErrors())
@@ -112,10 +140,21 @@
 		protected function makeForm()
 		{
 			$form = Form::create();
-			
-			foreach ($this->getFormMapping() as $primitive)
-				$form->add($primitive);
-			
+
+			if ($this->getFormMapping()) {
+                foreach ($this->getFormMapping() as $primitive) {
+                    $form->add($primitive);
+                }
+            } else {
+			    // allow to fill form with all fields provided
+                $raw = $this->getRawValue();
+                if ($raw instanceof Hstore) {
+                    foreach ($raw->getList() as $key => $value) {
+                        $form->add(Primitive::anyType($key));
+                    }
+                }
+            }
+
 			return $form;
 		}
 	}

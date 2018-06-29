@@ -12,5 +12,18 @@
 	/**
 	 * @ingroup Primitives
 	**/
-	final class PrimitiveAnyType extends BasePrimitive {/* nop */}
+	final class PrimitiveAnyType extends BasePrimitive {
+
+        public function import($scope)
+        {
+            if (parent::import($scope)) {
+                $this->value = $this->raw;
+                return true;
+            }
+
+            return null;
+        }
+
+
+    }
 ?>
