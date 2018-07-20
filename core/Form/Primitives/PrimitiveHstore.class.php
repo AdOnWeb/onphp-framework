@@ -81,10 +81,11 @@
             return $this->getDefault();
 		}
 
-		/**
-		 * @throws WrongArgumentException
-		 * @return boolean
-		**/
+        /**
+         * @param Hstore|null $value
+         * @return boolean
+         * @throws WrongArgumentException
+         */
 		public function importValue($value)
 		{
 			if ($value === null)
@@ -92,16 +93,7 @@
 			
 			Assert::isTrue($value instanceof Hstore, 'importValue');
 				
-			if (!$this->value instanceof Form)
-				$this->value = $this->makeForm();
-			
-			$this->value->import($value->getList());
-			$this->imported = true;
-			
-			return
-				$this->value->getErrors()
-					? false
-					: true;
+			return $this->import([ $this->name => $value->getList() ]);
 		}
 		
 		public function import($scope)
