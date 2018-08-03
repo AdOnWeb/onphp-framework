@@ -284,5 +284,18 @@
             return $result;
 		}
 
+        public static function mapKeys($array, $mapFunction)
+        {
+            $result = [];
+            foreach ($array as $key => $value) {
+                $newKey = $mapFunction($key);
+                if (array_key_exists($newKey, $result)) {
+                    throw new WrongArgumentException('duplicate key "' . $newKey . '"');
+                }
+                $result[$mapFunction($key)] = $value;
+            }
+            return $result;
+		}
+
 	}
 ?>
