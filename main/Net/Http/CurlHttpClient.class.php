@@ -13,7 +13,7 @@
 	/**
 	 * @ingroup Http
 	**/
-	final class CurlHttpClient implements HttpClient
+	class CurlHttpClient implements HttpClient
 	{
 		private $options		= array();
 		
@@ -27,15 +27,15 @@
 		private $handler = null;
 		
 		/**
-		 * @return CurlHttpClient
+		 * @return static
 		**/
 		public static function create()
 		{
-			return new self;
+			return new static();
 		}
 		
 		/**
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function setOption($key, $value)
 		{
@@ -45,7 +45,7 @@
 		}
 		
 		/**
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function dropOption($key)
 		{
@@ -64,7 +64,7 @@
 		
 		/**
 		 * @param $timeout int seconds
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function setTimeout($timeout)
 		{
@@ -88,7 +88,7 @@
 		 * whether to follow header Location or not
 		 *
 		 * @param $really boolean
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function setFollowLocation($really)
 		{
@@ -104,7 +104,7 @@
 		
 		/**
 		 * @param $really boolean
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function setNoBody($really)
 		{
@@ -119,7 +119,7 @@
 		}
 		
 		/**
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function setMaxRedirects($maxRedirects)
 		{
@@ -137,7 +137,7 @@
 		}
 		
 		/**
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function setMaxFileSize($maxFileSize)
 		{
@@ -151,7 +151,7 @@
 		}
 		
 		/**
-		 * @return CurlHttpClient
+		 * @return $this
 		**/
 		public function addRequest(HttpRequest $request, $options = array())
 		{
