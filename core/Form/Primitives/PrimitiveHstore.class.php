@@ -98,10 +98,7 @@
 		
 		public function import($scope)
 		{
-			if (!isset($scope[$this->name]))
-				return null;
-			
-			$this->raw = $scope[$this->name];
+			$this->raw = $scope[$this->name] ?? [];
 			
 			if (!$this->value instanceof Form)
 				$this->value = $this->makeForm();

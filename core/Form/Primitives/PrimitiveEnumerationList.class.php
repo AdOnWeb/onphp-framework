@@ -15,8 +15,24 @@
 	final class PrimitiveEnumerationList extends PrimitiveEnumeration
 	{
 		protected $value = array();
-		
-		/**
+
+        /**
+         * due to historical reasons, by default we're dealing only with
+         * integer identifiers, this problem correctly fixed in master branch
+         */
+        protected $scalar = false;
+
+        /**
+         * @return IdentifiablePrimitive
+         **/
+        public function setScalar($orly = false)
+        {
+            $this->scalar = ($orly === true);
+
+            return $this;
+        }
+
+        /**
 		 * @return PrimitiveEnumerationList
 		**/
 		public function clean()
@@ -48,8 +64,12 @@
 		{
 			if (is_array($value)) {
 				try {
-					Assert::isInteger(current($value));
-					
+				    foreach ($value as $id) {
+                        if (!$this->checkId($id)) {
+                            throw new WrongArgumentException($id);
+                        }
+                    }
+
 					return $this->import(
 						array($this->name => $value)
 					);
@@ -81,7 +101,7 @@
 			$values = array();
 			
 			foreach ($list as $id) {
-				if (!Assert::checkInteger($id))
+				if (!$this->checkId($id))
 					return false;
 				
 				$values[] = $id;
@@ -91,7 +111,11 @@
 			
 			foreach ($values as $value) {
 				$className = $this->className;
-				$objectList[] = new $className($value);
+				try {
+                    $objectList[] = new $className($value);
+                } catch (MissingElementException $e) {
+				    return false;
+                }
 			}
 			
 			if (count($objectList) == count($values)) {
@@ -109,5 +133,15 @@
 			
 			return ArrayUtils::getIdsArray($this->value);
 		}
+
+
+        protected function checkId($number)
+        {
+            if ($this->scalar)
+                return Assert::checkScalar($number);
+            else
+                return Assert::checkInteger($number);
+        }
+
 	}
 ?>
