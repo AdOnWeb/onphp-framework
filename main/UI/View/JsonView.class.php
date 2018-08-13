@@ -150,6 +150,23 @@
 		}
 
 		/**
+		 * @param bool $flag
+		 * @return JsonView
+		**/
+		public function setUnescapedUnicode($flag = false)
+		{
+			if (defined("JSON_UNESCAPED_UNICODE")) {
+				if ($flag) {
+					$this->options = $this->options | JSON_UNESCAPED_UNICODE;
+				} else {
+					$this->options = $this->options & ~JSON_UNESCAPED_UNICODE;
+				}
+			}
+
+			return $this;
+		}
+
+		/**
 		 * создание callback
 		 *
 		 * @param $callback
@@ -168,7 +185,7 @@
 		public function render(/* Model */ $model = null)
 		{
 			if (!headers_sent()) {
-				header('Content-Type: ' . ($this->callback ? 'text/javascript' : 'application/json'));
+				header('Content-Type: ' . ($this->callback ? 'text/javascript' : 'application/json') . '; charset=utf-8');
 			}
 			if (is_null($this->callback)) {
 				echo $this->toString($model);
