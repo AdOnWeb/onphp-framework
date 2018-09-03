@@ -38,11 +38,15 @@
 		}
 		
 		public function doLine($line)
-		{
-			$line = trim($line, "\r\n");
-			$matches = array();
+        {
+            $line = trim($line, "\r\n");
+            $matches = array();
 
-			if (preg_match("/^([\w-]+):\s+(.+)/", $line, $matches)) {
+            if (preg_match('/^HTTP\/1/', $line)) {
+                // start of headers -- start fresh in case it's a subsequent response due to FOLLOW_LOCATION=true
+                $this->headers = [];
+
+            } else if (preg_match("/^([\w-]+):\s+(.+)/", $line, $matches)) {
 				
 				$name = strtolower($matches[1]);
 				$value = $matches[2];
