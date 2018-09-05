@@ -738,6 +738,11 @@ class MongoBase extends NoSQL {
 		return $result;
 	}
 
+    /**
+     * @param OrderChain $chain
+     * @return OrderBy[]
+     * @throws WrongArgumentException
+     */
 	private function flatOrderChain(OrderChain $chain) {
 	    $orders = [];
 	    foreach ($chain->getList() as $orderBy) {
