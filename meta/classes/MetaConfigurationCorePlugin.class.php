@@ -1510,6 +1510,8 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
             );
         }
 
+        $columnNames = [];
+
         foreach ($class->getProperties() as $property) {
             if (
                 !$property->getType()->isGeneric()
@@ -1542,6 +1544,12 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                     . ')'
                 );
             }
+
+            $columnName = $property->toLightProperty($class)->getColumnName();
+            if (isset($columnNames[$columnName])) {
+                throw new WrongArgumentException('multiple columns with name "' . $columnName . '" in ' . $class->getName());
+            }
+            $columnNames[$columnName] = true;
         }
 
         return $this;

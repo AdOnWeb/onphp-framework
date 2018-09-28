@@ -366,6 +366,10 @@
 			return $this->buildColumn($this->getRelationColumnName());
 		}
 
+        /**
+         * @param MetaClass $holder
+         * @return LightMetaProperty
+         */
 		public function toLightProperty(MetaClass $holder)
 		{
 			$className = null;
@@ -481,15 +485,21 @@
 				$size = null;
 			}
 
+			$columnName = $this->getRelationColumnName();
+			if ($this->getName() == $columnName) {
+			    $columnName = null;
+            }
+            if ($this->getRelationId() == MetaRelation::MANY_TO_MANY) {
+			    $columnName = null;
+            }
+
 			return
 				call_user_func_array(
 					array($propertyClassName, 'fill'),
 					array(
 						new $propertyClassName,
 						$this->getName(),
-						$this->getName() <> $this->getRelationColumnName()
-							? $this->getRelationColumnName()
-							: null,
+						$columnName,
 						$primitiveName,
 						$className,
 						$size,
