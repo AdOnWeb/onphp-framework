@@ -369,10 +369,8 @@
 
 		public function toFormValue($value)
 		{
-			if( $value instanceof MappedFormField )
+			if ($value instanceof FormField)
 				return $value->toValue($this);
-			elseif ($value instanceof FormField)
-				return $this->getValue($value->getName());
 			elseif ($value instanceof LogicalObject)
 				return $value->toBoolean($this);
 			else

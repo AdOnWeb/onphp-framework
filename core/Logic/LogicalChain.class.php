@@ -63,81 +63,104 @@
 		
 		public function toBoolean(LogicalOperandProvider $operandProvider)
 		{
+		    $this->regroupByPrecedence();
+
             /** @var LogicalObject[] $chain */
 			$chain = &$this->chain;
 			
 			$size = count($chain);
 			
-			if (!$size)
-				throw new WrongArgumentException(
-					'empty chain can not be calculated'
-				);
-			elseif ($size == 1)
-				return $chain[0]->toBoolean($operandProvider);
-			else { // size > 1
-				$out = $chain[0]->toBoolean($operandProvider);
-				
-				for ($i = 1; $i < $size; ++$i) {
-					$out =
-						self::calculateBoolean(
-							$this->logic[$i],
-							$out,
-							$chain[$i]->toBoolean($operandProvider)
-						);
-				}
-				
-				return $out;
+			if ($size == 0) {
+                throw new WrongArgumentException(
+                    'empty chain can not be calculated'
+                );
 			}
-			
-			Assert::isUnreachable();
+
+			if ($size == 1) {
+			    // single item -- quick result
+                return $chain[0]->toBoolean($operandProvider);
+			}
+
+            // for regrouped chain, all elements logic is the same
+            $logic = $this->logic[0];
+
+            if ($logic == BinaryExpression::EXPRESSION_OR) {
+                // "false" until first "true"
+                $initial = false;
+                $breakAt = true;
+            } else {
+                // "true" until first "false"
+                $initial = true;
+                $breakAt = false;
+            }
+
+            $result = $initial;
+            foreach ($chain as $logicalObject) {
+                $result = $logicalObject->toBoolean($operandProvider);
+                if ($result == $breakAt) {
+                    break;
+                }
+            }
+
+            return $result;
 		}
 
-		public function toBooleanByProto(Prototyped $object)
-		{
-			$chain = &$this->chain;
+        /**
+         * For a chain with mixed AND/OR logic, this would create new chain (OR-block) with existing AND-logic parts
+         * grouped into separate AND-blocks
+         *
+         *   a OR b AND b  ->  a OR (b AND c)
+         *
+         * @return LogicalChain
+         */
+        public function regroupByPrecedence()
+        {
+            // root is the OR block of items, some of which can be AND blocks
+            $root = Expression::orBlock();
+            // temporary block for collecting AND logic
+            $andBlock = Expression::andBlock();
 
-			$size = count($chain);
+            for ($i = 0; $i < count($this->chain); $i++) {
+                $value = $this->chain[$i];
+                $logic = $this->logic[$i];
 
-			if (!$size)
-				throw new WrongArgumentException(
-					'empty chain can not be calculated'
-				);
-			elseif ($size == 1)
-				return $chain[0]->toBooleanByProto($object);
-			else { // size > 1
-				$out = $chain[0]->toBooleanByProto($object);
+                switch ($logic) {
+                    case BinaryExpression::EXPRESSION_AND:
+                        // add to temporary AND block
+                        $andBlock->expAnd($value);
+                        break;
 
-				for ($i = 1; $i < $size; ++$i) {
-					$out =
-						self::calculateBoolean(
-							$this->logic[$i],
-							$out,
-							$chain[$i]->toBooleanByProto($object)
-						);
-				}
+                    case BinaryExpression::EXPRESSION_OR:
+                        if ($andBlock->getSize() != 0) {
+                            // push finished AND block to global OR block
+                            $root->expOr($andBlock);
+                            // reset temporary AND block
+                            $andBlock = Expression::andBlock();
+                        }
+                        // add OR logic to OR block
+                        $root->expOr($value);
+                        break;
 
-				return $out;
-			}
+                    default:
+                        throw new UnexpectedValueException($logic);
+                }
+            }
 
-			Assert::isUnreachable();
-		}
-		
-		private static function calculateBoolean($logic, $left, $right)
-		{
-			switch ($logic) {
-				case BinaryExpression::EXPRESSION_AND:
-					return $left && $right;
+            if ($andBlock->getSize() != 0) {
+                // something left
+                if ($root->getSize() == 0) {
+                    // all items was in AND logic
+                    $root = $andBlock;
+                } else {
+                    // push last AND block to global OR block
+                    $root->expOr($andBlock);
+                }
+            }
 
-				case BinaryExpression::EXPRESSION_OR:
-					return $left || $right;
+            $this->logic = $root->logic;
+            $this->chain = $root->chain;
 
-				default:
-					throw new WrongArgumentException(
-						"unknown logic - '{$logic}'"
-					);
-			}
-
-			Assert::isUnreachable();
+            return $this;
 		}
 	}
 ?>
