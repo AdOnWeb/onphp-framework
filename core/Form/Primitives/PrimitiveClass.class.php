@@ -23,7 +23,7 @@
 			
 			if (
 				!ClassUtils::isClassName($scope[$this->name])
-				|| !$this->classExists($scope[$this->name])
+				|| !class_exists($scope[$this->name])
 				|| (
 					$this->ofClassName
 					&& !ClassUtils::isInstanceOf(
@@ -57,11 +57,6 @@
 			$this->ofClassName = $className;
 			
 			return $this;
-		}
-		
-		private function classExists($name)
-		{
-		    return class_exists($name);
 		}
 		
 		private function guessClassName($class)
