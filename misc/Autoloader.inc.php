@@ -57,8 +57,6 @@
                             ->end()
                         ;
 						return /* void */;
-					} catch (ClassNotFoundException $e) {
-						throw $e;
 					} catch (BaseException $e) {
 						$cache = null;
 					}
@@ -159,10 +157,6 @@
 					throw $e;
 				}
 			}
-
-			if (!class_exists($classname)) {
-				__autoload_failed($classname, 'class not found' . PHP_EOL . implode(PHP_EOL, $errors));
-			}
 		}
 		
 		public static function wholeClassCache($classname)
@@ -208,34 +202,30 @@
 					register_shutdown_function(array('Autoloader', 'autoloadCleanup'));
 				}
 				
-				try {
-					$classPath = null;
-					
-					foreach (
-						explode(PATH_SEPARATOR, get_include_path())
-						as $directory
-					) {
-						$location = $directory.'/'.$classname.EXT_CLASS;
-						
-						if (is_readable($location)) {
-							$classPath = $location;
-							break;
-						}
-					}
-					
-					if (!$classPath)
-						throw new BaseException('failed to find requested class');
-					
-					$class = file_get_contents($classPath);
-					
-					eval('?>'.$class);
-                    $profiling
-                        ->setInfo($classPath)
-                        ->end()
-                    ;
-				} catch (BaseException $e) {
-					return __autoload_failed($classname, $e->getMessage());
-				}
+                $classPath = null;
+
+                foreach (
+                    explode(PATH_SEPARATOR, get_include_path())
+                    as $directory
+                ) {
+                    $location = $directory.'/'.$classname.EXT_CLASS;
+
+                    if (is_readable($location)) {
+                        $classPath = $location;
+                        break;
+                    }
+                }
+
+                if (!$classPath)
+                    throw new BaseException('failed to find requested class');
+
+                $class = file_get_contents($classPath);
+
+                eval('?>'.$class);
+                $profiling
+                    ->setInfo($classPath)
+                    ->end()
+                ;
 				
 				file_put_contents($cacheFile.'-'.$pid, $class, FILE_APPEND);
 				
@@ -304,10 +294,6 @@
                     ;
 				}
 			}
-
-			if (!class_exists($classname, false) && !interface_exists($classname, false) && !trait_exists($classname, false)) {
-				__autoload_failed($classname, 'class not found');
-			}
 		}
 
 		protected static $memcahe = null;
@@ -367,10 +353,6 @@
                         ->end()
                     ;
 				}
-			}
-
-			if (!class_exists($classname, false) && !interface_exists($classname, false) && !trait_exists($classname, false)) {
-				__autoload_failed($classname, 'class not found');
 			}
 		}
 	}

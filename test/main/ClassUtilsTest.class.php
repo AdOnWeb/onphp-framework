@@ -22,10 +22,8 @@
 			try {
 				ClassUtils::callStaticMethod('InexistantClass::InSaNeMeThOd');
 				$this->fail();
-			} catch (ClassNotFoundException $e) {
-				/* first pass */
 			} catch (WrongArgumentException $e) {
-				/* and all others */
+				/* pass */
 			}
 			
 			try {

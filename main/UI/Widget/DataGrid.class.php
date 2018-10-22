@@ -310,7 +310,6 @@ class DataGrid extends BaseWidget
      * @param string $fieldId
      * @param LightMetaProperty $property
      * @return closure
-     * @throws ClassNotFoundException
      */
     protected function getEditRenderer($fieldId, LightMetaProperty $property) {
         switch($property->getType()) {
@@ -368,10 +367,8 @@ class DataGrid extends BaseWidget
             case 'enum':
             case 'enumeration':
                 return function ($value) use ($fieldId, $property) {
+                    /** @var Enumeration|Enum|string $class */
                     $class = $property->getClassName();
-                    if (!class_exists($class, true)) {
-                        throw new ClassNotFoundException;
-                    }
                     $list = is_subclass_of($class, 'Enum') ? $class::getList() : $class::makeObjectList();
                     $html = '<select name="' . $fieldId . '">';
 					if (!$property->isRequired()) {
@@ -422,7 +419,6 @@ class DataGrid extends BaseWidget
      * @param string $fieldId
      * @param LightMetaProperty $property
      * @return closure
-     * @throws ClassNotFoundException
      */
     protected function getLazyViewRenderer($fieldId, LightMetaProperty $property) {
 		// переменные для замыканий, т.к. они не биндятся к this

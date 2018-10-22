@@ -61,11 +61,7 @@
 		
 		private function classExists($name)
 		{
-			try {
-				return class_exists($name, true);
-			} catch (ClassNotFoundException $e) {
-				return false;
-			}
+		    return class_exists($name);
 		}
 		
 		private function guessClassName($class)
