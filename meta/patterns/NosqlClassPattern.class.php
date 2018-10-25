@@ -13,7 +13,7 @@
 /**
  * @ingroup Patterns
 **/
-class NoSqlClassPattern extends BasePattern {
+class NosqlClassPattern extends BasePattern {
 
 	public function tableExists()
 	{
@@ -27,7 +27,7 @@ class NoSqlClassPattern extends BasePattern {
 
 	/**
 	 * @param MetaClass $class
-	 * @return NoSqlClassPattern
+	 * @return NosqlClassPattern
 	 */
 	protected function fullBuild(MetaClass $class)
 	{

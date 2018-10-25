@@ -368,7 +368,7 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                     'identifier name mismatch in ' . $class->getName() . ' class'
                 );
 
-                if ($class->getPattern() instanceof NoSqlClassPattern) {
+                if ($class->getPattern() instanceof NosqlClassPattern) {
                     try {
                         NoSqlPool::getByDao($dao);
                     } catch (MissingElementException $e) {
@@ -673,7 +673,7 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                 continue;
             }
 
-            if ($class->getPattern() instanceof NoSqlClassPattern) {
+            if ($class->getPattern() instanceof NosqlClassPattern) {
                 // checking NoSQL-DB
                 try {
                     NoSqlPool::me()->getLink($class->getSourceLink());

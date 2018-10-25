@@ -1,0 +1,15 @@
+{
+    "name": "adonweb/onphp",
+    "description": "modified onPHP framework",
+    "authors": [
+        {
+            "name": "klkvsk",
+            "email": "m@klkvsk.ru"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "files" : [ "./bootstrap.php" ],
+        "classmap": [ "core", "main", "meta" ]
+    }
+}

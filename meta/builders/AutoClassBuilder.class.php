@@ -31,7 +31,7 @@
 				$out .= " extends NamedObject";
 				$isNamed = true;
 			} elseif (
-				$class->getPattern() instanceof NoSqlClassPattern
+				$class->getPattern() instanceof NosqlClassPattern
 				&& $class->hasProperty('id')
 			) {
 				$out .= " extends NoSqlObject";

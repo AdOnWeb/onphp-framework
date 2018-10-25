@@ -466,14 +466,6 @@
 			return new PrimitiveUuidIdentifierList($name);
 		}
 
-		/**
-		 * @static
-		 * @return PrimitiveReCaptcha
-		**/
-		public static function reCaptcha()
-		{
-			return new PrimitiveReCaptcha();
-		}
 
 		/**
 		 * @return PrimitiveRule

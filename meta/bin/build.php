@@ -1,5 +1,6 @@
 #!/usr/bin/php
 <?php
+    require __DIR__ . '/../../vendor/autoload.php';
 
 	function help()
 	{
@@ -317,9 +318,14 @@ Possible options:
 			$meta->checkForStaleFiles($metaDropStaleFiles);
 			
 			$out->newLine()->info('Trying to compile all known classes... ');
-			
-			ClassUtils::preloadAllClasses();
-			
+
+			// preload all classes -- do syntax check before other checks
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(PATH_CLASSES)) as $file) {
+                if (StringHelper::endsWith($file, EXT_CLASS)) {
+                    include_once $file;
+                }
+            }
+
 			$out->infoLine('done.');
 
 			if (!$metaNoIntegrityCheck) {
