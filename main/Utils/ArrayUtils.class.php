@@ -292,7 +292,7 @@
                 if (array_key_exists($newKey, $result)) {
                     throw new WrongArgumentException('duplicate key "' . $newKey . '"');
                 }
-                $result[$mapFunction($key)] = $value;
+                $result[$newKey] = $value;
             }
             return $result;
 		}
