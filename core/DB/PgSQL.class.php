@@ -140,7 +140,7 @@
 				} else
 					$e = 'PostgresDatabaseException';
 
-				throw new $e($error.' - '.$queryString, $code);
+				throw new $e("[$this->hostname] " . $error.' - '.$queryString, $code);
 			}
 		}
 
