@@ -14,7 +14,10 @@
 	**/
 	class PrimitiveForm extends BasePrimitive
 	{
-		protected $proto = null;
+	    /** @var AbstractProtoClass|EntityProto */
+		private $proto = null;
+		/** @var Form */
+		private $form = null;
 		
 		private $composite = false;
 		
@@ -42,15 +45,40 @@
 		public function ofProto(EntityProto $proto)
 		{
 			$this->proto = $proto;
-			
+            $this->form = null;
+
 			return $this;
 		}
 
 		public function ofAutoProto(AbstractProtoClass $proto)
 		{
 			$this->proto = $proto;
+			$this->form = null;
 
 			return $this;
+		}
+
+        public function ofForm(Form $form)
+        {
+            $this->form = $form;
+            $this->proto = null;
+
+            return $this;
+		}
+
+        public function makeForm()
+        {
+            if (!$this->form) {
+                if (!$this->proto) {
+                    throw new WrongStateException(
+                        "no proto defined for PrimitiveFormsList '{$this->name}'"
+                    );
+                }
+
+                $this->form = $this->proto->makeForm();
+            }
+
+            return clone $this->form;
 		}
 		
 		/**
@@ -147,7 +175,7 @@
 			if (!isset($scope[$this->name]))
 				return null;
 			
-			$this->rawValue = $scope[$this->name];
+			$this->raw = $scope[$this->name];
 			
 			if (!$this->value || !$this->composite)
 				$this->value = $this->proto->makeForm();
@@ -155,10 +183,10 @@
 			if (!$importFiltering) {
 				$this->value->
 					disableImportFiltering()->
-					import($this->rawValue)->
+					import($this->raw)->
 					enableImportFiltering();
 			} else {
-				$this->value->import($this->rawValue);
+				$this->value->import($this->raw);
 			}
 			
 			$this->imported = true;

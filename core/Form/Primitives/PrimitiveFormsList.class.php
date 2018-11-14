@@ -14,6 +14,7 @@
 	**/
 	final class PrimitiveFormsList extends PrimitiveForm
 	{
+	    /** @var Form[] */
 		protected $value = array();
 		
 		/**
@@ -38,22 +39,17 @@
 		public function getInnerErrors()
 		{
 			$result = array();
-			
-			foreach ($this->getValue() as $id => $form) {
+
+			foreach ($this->value as $id => $form) {
 				if ($errors = $form->getInnerErrors())
 					$result[$id] = $errors;
 			}
 			
 			return $result;
 		}
-		
+
 		public function import($scope)
 		{
-			if (!$this->proto)
-				throw new WrongStateException(
-					"no proto defined for PrimitiveFormsList '{$this->name}'"
-				);
-			
 			if (!BasePrimitive::import($scope))
 				return null;
 			
@@ -62,12 +58,10 @@
 			
 			$error = false;
 			
-			$this->value = array();
+			$this->value = [];
 			
 			foreach ($scope[$this->name] as $id => $value) {
-				$this->value[$id] =
-					$this->proto->makeForm()->
-						import($value);
+				$this->value[$id] = $this->makeForm()->import($value);
 				
 				if ($this->value[$id]->getErrors())
 					$error = true;
@@ -75,7 +69,12 @@
 			
 			return !$error;
 		}
-		
+
+        /**
+         * @param Form[] $value
+         * @return bool|null
+         * @throws WrongArgumentException
+         */
 		public function importValue($value)
 		{
 			if ($value !== null)
