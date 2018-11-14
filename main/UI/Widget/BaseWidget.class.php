@@ -7,48 +7,29 @@
 abstract class BaseWidget implements IWidget
 {
 	protected $name					= null;
-	protected $templatePath			= null;
 	protected $templateName			= null;
 	protected $list					= null;
 
-	protected static $templatePathPrefixes = array();
-	protected static $viewer = null;
-
-	/**
-	 * @var PartViewer
-	 */
+	/** @var ViewResolver */
+	protected static $viewResolver;
+	/** @var PartViewer */
+	protected $viewer = null;
 
 	public function __construct($name = null)
 	{
 		$this->name = $name;
 	}
 
-	protected static function getViewer() {
-		if (!self::$viewer) {
-			$viewResolver = MultiPrefixPhpViewResolver::create()
-				->setViewClassName('SimplePhpView');
-
-			foreach (self::$templatePathPrefixes as $prefix) {
-				$viewResolver->addPrefix($prefix);
-			}
-			self::$viewer = new PartViewer($viewResolver, Model::create());
+	protected function getViewer() {
+		if (!$this->viewer) {
+			assert(self::$viewResolver instanceof ViewResolver, 'set view resolver first');
+			$this->viewer = new PartViewer(self::$viewResolver, Model::create());
 		}
-		return self::$viewer;
+		return $this->viewer;
 	}
 
-	/**
-	 * @param PartViewer $viewer
-	 * @return $this
-	 */
-	public static function setViewer(PartViewer $viewer)
-	{
-		self::$viewer = $viewer;
-	}
-
-
-	public static function addTemplatePrefix($prefix) {
-		self::$templatePathPrefixes []= $prefix;
-		self::$viewer = null;
+	public static function setViewResolver(ViewResolver $viewResolver) {
+	    self::$viewResolver = $viewResolver;
 	}
 
 	/**
@@ -117,9 +98,7 @@ abstract class BaseWidget implements IWidget
 
 			ob_start();
 
-			$this->getViewer()->view(
-				$this->templatePath. DIRECTORY_SEPARATOR. $this->templateName
-			);
+			$this->getViewer()->view($this->templateName);
 
 			$source = ob_get_contents();
 

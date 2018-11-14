@@ -20,5 +20,11 @@
 		 * @return	View
 		**/
 		public function resolveViewName($viewName);
+
+        /**
+         * @param $viewName string
+         * @return bool
+         */
+        public function viewExists($viewName);
 	}
 ?>
