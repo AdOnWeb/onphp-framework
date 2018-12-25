@@ -63,8 +63,13 @@
 		{
 			return null;
 		}
-		
-		public function quoteBinary($data)
+
+        public function getLanguageName()
+        {
+            return 'MySQL';
+        }
+
+        public function quoteBinary($data)
 		{
 			return "'".mysql_real_escape_string($data)."'";
 		}

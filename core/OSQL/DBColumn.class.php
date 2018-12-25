@@ -148,6 +148,12 @@
 			return ($this->reference !== null);
 		}
 
+		/** @return DBColumn|null */
+        public function getReference()
+        {
+            return $this->reference;
+		}
+
 		/**
 		 * @return DBColumn
 		**/

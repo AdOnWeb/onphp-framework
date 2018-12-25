@@ -317,6 +317,30 @@
 						$type->setSize($sizeInfo['numeric_precision']);
 						$type->setPrecision($sizeInfo['numeric_scale']);
 					}
+					if ($type->isArrayColumn()) {
+                        $arrayItemSizeInfo = $this->queryRow(
+                            OSQL::select()
+                                ->get('atttypid')
+                                ->get('atttypmod')
+                                ->from('pg_catalog.pg_attribute')
+                                ->where(Expression::gt('attnum', 0))
+                                ->andWhere(Expression::not('attisdropped'))
+                                ->andWhere(Expression::eq(
+                                    'attrelid',
+                                    OSQL::select()
+                                        ->get('oid')
+                                        ->from('pg_catalog.pg_class')
+                                        ->where(Expression::eq('relname', DBValue::create($table->getName())))
+                                ))
+                                ->andWhere(Expression::eq('attname', DBValue::create($name)))
+                        );
+
+                        $arrayItemSize = intval($arrayItemSizeInfo['atttypmod']);
+                        if ($arrayItemSize != -1) {
+                            // https://stackoverflow.com/questions/52376045/why-does-atttypmod-differ-from-character-maximum-length
+                            $type->setSize($arrayItemSize - 4);
+                        }
+                    }
 				}
 
 				$column = new DBColumn($type, $name);

@@ -152,7 +152,7 @@
 		public function setPrecision($precision)
 		{
 			Assert::isInteger($precision);
-			Assert::isTrue(($this->id & self::HAVE_PRECISION) > 0);
+			Assert::isTrue($this->hasPrecision());
 
 			$this->precision = $precision;
 

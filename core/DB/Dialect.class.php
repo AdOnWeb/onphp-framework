@@ -49,6 +49,11 @@
 			return "CAST ({$field} AS {$type})";
 		}
 
+        public function getLanguageName()
+        {
+            return 'SQL';
+		}
+
         /**
          * @param bool|Ternary $exists
          * @return string

@@ -603,9 +603,9 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
         $out = $this->getOutput();
         $out->newLine()->infoLine('Building DB schema:');
 
-        $schema = SchemaBuilder::getHead();
+        $schema = SchemaBuilder::getHead(array_keys($this->sources));
 
-        $tables = array();
+        $tables = [];
 
         foreach ($this->classes as $class) {
             if (
@@ -615,14 +615,26 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                 continue;
             }
 
-            foreach ($class->getAllProperties() as $property)
-                $tables[$class->getTableName()][// just to sort out dupes, if any
-                $property->getColumnName()] = $property;
+            if (!array_key_exists($class->getSourceLink(), $tables)) {
+                $tables[$class->getSourceLink()] = [];
+            }
+            
+            $propertyMap = [];
+            foreach ($class->getAllProperties() as $property) {
+                // just to sort out dupes, if any
+                $propertyMap[$property->getColumnName()] = $property;
+            }
+            
+            $tables[$class->getSourceLink()][$class->getTableName()] = $propertyMap;
         }
 
-        foreach ($tables as $name => $propertyList)
-            if ($propertyList)
-                $schema .= SchemaBuilder::buildTable($name, $propertyList);
+        foreach ($tables as $source => $tablesOfSource) {
+            foreach ($tablesOfSource as $name => $propertyList) {
+                if ($propertyList) {
+                    $schema .= SchemaBuilder::buildTable($source, $name, $propertyList);
+                }
+            }
+        }
 
         foreach ($this->classes as $class) {
             if (!$class->getPattern()->tableExists()) {
@@ -649,117 +661,32 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
             ->newLine()
             ->infoLine('Suggested DB-schema changes: ');
 
+
         /** @noinspection PhpIncludeInspection */
         require ONPHP_META_AUTO_DIR . 'schema.php';
-        if (!isset($schema) || !($schema instanceof DBSchema)) {
+        if (!isset($schemes) || !is_array($schemes)) {
             $out->errorLine('Could not import schema from schema.php');
             return $this;
         }
 
-        /** @var $class MetaClass */
-        foreach ($this->classes as $class) {
-            if (
-                $class->getTypeId() == MetaClassType::CLASS_ABSTRACT
-                || $class->getPattern() instanceof EnumerationClassPattern
-                || $class->getPattern() instanceof EnumClassPattern
-                || $class->getPattern() instanceof RegistryClassPattern
-            )
-                continue;
+        $diffsUp = MigrationBuilder::getDifferenceUp($schemes);
+        $diffsDown = MigrationBuilder::getDifferenceDown($schemes);
 
-            try {
-                $target = $schema->getTableByName($class->getTableName());
-            } catch (MissingElementException $e) {
-                // dropped or tableless
-                continue;
+        foreach ($diffsUp as $sourceLinkName => $commands) {
+            $out->infoLine("\n-- in \"$sourceLinkName\"");
+            foreach ($commands as $command) {
+                $out->remarkLine($command, ConsoleMode::FG_BROWN);
             }
+            $out->infoLine("\n");
+        }
 
-            if ($class->getPattern() instanceof NosqlClassPattern) {
-                // checking NoSQL-DB
-                try {
-                    NoSqlPool::me()->getLink($class->getSourceLink());
-                } catch (Exception $e) {
-                    $out->errorLine(
-                        'Can not connect using source link in \''
-                        . $class->getName() . '\' class, skipping this step.'
-                    );
+        foreach ($diffsUp as $sourceLinkName => $commands) {
+            $migrationId = date('YmdHis') . '_' . substr(md5(implode($commands)), 0, 8);
 
-                    break;
-                }
-            } else {
-                // checking SQL-DB
-                try {
-                    $db = DBPool::me()->getLink($class->getSourceLink());
-                } catch (Exception $e) {
-                    $out->errorLine(
-                        'Can not connect using source link in \''
-                        . $class->getName() . '\' class, skipping this step.'
-                    );
-
-                    break;
-                }
-
-                try {
-                    $source = $db->getTableInfo($class->getTableName());
-                } catch (UnsupportedMethodException $e) {
-                    $out->errorLine(
-                        get_class($db)
-                        . ' does not support tables introspection yet.',
-
-                        true
-                    );
-
-                    break;
-                } catch (ObjectNotFoundException $e) {
-                    $out->remarkLine(
-                        $target->toDialectString($db->getDialect()),
-                        ConsoleMode::FG_BLUE,
-                        true
-                    );
-
-                    continue;
-                }
-
-                $diff = DBTable::findDifferences(
-                    $db->getDialect(),
-                    $source,
-                    $target
-                );
-
-                if ($diff) {
-                    foreach ($diff as $line)
-                        $out->warningLine($line);
-
-                    $out->newLine();
-                }
-
-                $className = $class->getName();
-                /** @var $property MetaClassProperty */
-                foreach ($class->getProperties() as $property) {
-                    if ($property->getRelationId() == MetaRelation::MANY_TO_MANY) {
-                        try {
-                            /** @var ManyToManyLinked $manyToManyClass */
-                            $manyToManyClass = $property->toLightProperty($class)->getContainerName($className);
-
-                            if (is_subclass_of($manyToManyClass, 'ManyToManyLinked')) {
-                                /** @var ManyToManyLinked $manyToManyObject */
-                                $manyToManyObject = new $manyToManyClass(new $className);
-
-                                $target = $schema->getTableByName($manyToManyObject->getHelperTable());
-
-                                // may throw ObjectNotFoundException
-                                $db->getTableInfo($manyToManyObject->getHelperTable());
-                            }
-                        } catch (ObjectNotFoundException $e) {
-                            $out->remarkLine(
-                                $target->toDialectString($db->getDialect()),
-                                ConsoleMode::FG_MAGENTA,
-                                true
-                            );
-                        }
-                    }
-                }
-            }
-
+            BasePattern::dumpFile(
+                PATH_MIGRATIONS . "{$migrationId}_{$sourceLinkName}.php",
+                MigrationBuilder::buildMigration($migrationId, $sourceLinkName, $commands, $diffsDown[$sourceLinkName])
+            );
         }
 
         return $this;

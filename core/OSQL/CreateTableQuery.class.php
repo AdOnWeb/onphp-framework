@@ -31,9 +31,7 @@
 			$columns = array();
 			$primary = array();
 			
-			$order = $this->table->getOrder();
-			
-			foreach ($order as $column) {
+			foreach ($this->table->getColumns() as $column) {
 				
 				if ($column->isAutoincrement()) {
 					

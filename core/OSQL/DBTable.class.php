@@ -14,11 +14,11 @@
 	**/
 	final class DBTable implements DialectString
 	{
+	    /** @var string */
 		private $name		= null;
-		
+		/** @var DBColumn[] */
 		private $columns	= array();
-		private $order		= array();
-		
+
 		private $uniques	= array();
 		
 		/**
@@ -81,7 +81,7 @@
 				"column '{$name}' already exist"
 			);
 			
-			$this->order[] = $this->columns[$name] = $column;
+			$this->columns[$name] = $column;
 			
 			$column->setTable($this);
 			
@@ -107,14 +107,20 @@
 		**/
 		public function dropColumnByName($name)
 		{
-			if (!isset($this->columns[$name]))
-				throw new MissingElementException(
-					"column '{$name}' does not exist"
-				);
-			
+			if (!isset($this->columns[$name])) {
+                throw new MissingElementException(
+                    "column '{$name}' does not exist"
+                );
+            }
+
+			if (in_array($this->columns[$name], $this->uniques)) {
+                throw new WrongArgumentException(
+                    "column '{$name}' is used in uniques, can not be dropped"
+                );
+            }
+
 			unset($this->columns[$name]);
-			unset($this->order[array_search($name, $this->order)]);
-			
+
 			return $this;
 		}
 		
@@ -132,12 +138,7 @@
 		{
 			return $this->name;
 		}
-		
-		public function getOrder()
-		{
-			return $this->order;
-		}
-		
+
 		public function toDialectString(Dialect $dialect)
 		{
 			return OSQL::createTable($this)->toDialectString($dialect);
@@ -163,8 +164,8 @@
 				if (isset($targetColumns[$name])) {
 					if (
 						($column->getType()->getId() != $targetColumns[$name]->getType()->getId()
-							|| ($column->getType()->getSize() && $column->getType()->getSize() != $targetColumns[$name]->getType()->getSize())
-							|| ($column->getType()->getPrecision() && $column->getType()->getPrecision() != $targetColumns[$name]->getType()->getPrecision())
+							|| ($column->getType()->hasSize() && $column->getType()->getSize() != $targetColumns[$name]->getType()->getSize())
+							|| ($column->getType()->hasPrecision() && $column->getType()->getPrecision() != $targetColumns[$name]->getType()->getPrecision())
 						)
 						// for vertica: bigint == integer
 						&& !($dialect instanceof VerticaDialect && (

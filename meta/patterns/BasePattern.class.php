@@ -53,6 +53,12 @@
 					$fp = fopen($path, 'wb');
 					fwrite($fp, $content);
 					fclose($fp);
+					if (defined('ONPHP_GENERATED_FILES_CHMOD')) {
+					    chmod($path, ONPHP_GENERATED_FILES_CHMOD);
+                    }
+					if (defined('ONPHP_GENERATED_FILES_CHOWN')) {
+					    chown($path, ONPHP_GENERATED_FILES_CHOWN);
+                    }
 				}
 
 				$out->

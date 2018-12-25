@@ -70,6 +70,11 @@
 				);
 		}
 
+        public function getLanguageName()
+        {
+            return 'PostgreSQL';
+        }
+
 		public function quoteBinary($data)
 		{
 			return "'".pg_escape_bytea($data)."'"; // deleted first E in qoutes; it was - "E'..."

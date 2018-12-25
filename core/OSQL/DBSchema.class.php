@@ -14,6 +14,7 @@
 	**/
 	final class DBSchema extends QueryIdentification
 	{
+	    /** @var DBTable[] */
 		private $tables	= array();
 		private $order	= array();
 		

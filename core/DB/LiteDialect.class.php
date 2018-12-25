@@ -25,6 +25,11 @@
 		{
 			return Singleton::getInstance(__CLASS__);
 		}
+
+        public function getLanguageName()
+        {
+            return 'SQLite';
+        }
 		
 		public static function quoteValue($value)
 		{

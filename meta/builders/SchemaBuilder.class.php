@@ -16,10 +16,10 @@
 	{
 		protected static $knownTables = array();
 
-		public static function buildTable($tableName, array $propertyList)
+		public static function buildTable($sourceName, $tableName, array $propertyList)
 		{
 			$out = <<<EOT
-\$schema->
+\$schemes['$sourceName']->
 	addTable(
 		DBTable::create('{$tableName}')->
 
@@ -62,6 +62,10 @@ EOT;
 					}
 
 					$foreignClass = $property->getType()->getClass();
+
+					if ($class->getSourceLink() != $foreignClass->getSourceLink()) {
+					    continue;
+                    }
 
 					if (
 						$relation->getId() == MetaRelation::ONE_TO_MANY
@@ -126,7 +130,7 @@ EOT;
 						}
 
 						$out .= <<<EOT
-\$schema->
+\$schemes['{$class->getSourceLink()}']->
 	addTable(
 		DBTable::create('{$tableName}')->
 		{$property->toColumn()}->
@@ -143,11 +147,11 @@ EOT;
 
 						$out .= <<<EOT
 // {$tableName}.{$sourceColumn} -> {$targetTable}.{$targetColumn}
-\$schema->
+\$schemes['{$class->getSourceLink()}']->
 	getTableByName('{$tableName}')->
 		getColumnByName('{$sourceColumn}')->
 			setReference(
-				\$schema->
+				\$schemes['{$class->getSourceLink()}']->
 					getTableByName('{$targetTable}')->
 					getColumnByName('{$targetColumn}'),
 				ForeignChangeAction::cascade(),
@@ -163,11 +167,11 @@ EOT;
 
 						$out .= <<<EOT
 // {$tableName}.{$sourceColumn} -> {$targetTable}.{$targetColumn}
-\$schema->
+\$schemes['{$class->getSourceLink()}']->
 	getTableByName('{$tableName}')->
 		getColumnByName('{$sourceColumn}')->
 			setReference(
-				\$schema->
+				\$schemes['{$class->getSourceLink()}']->
 					getTableByName('{$targetTable}')->
 					getColumnByName('{$targetColumn}'),
 				ForeignChangeAction::cascade(),
@@ -186,11 +190,11 @@ EOT;
 
 						$out .= <<<EOT
 // {$sourceTable}.{$sourceColumn} -> {$targetTable}.{$targetColumn}
-\$schema->
+\$schemes['{$class->getSourceLink()}']->
 	getTableByName('{$sourceTable}')->
 		getColumnByName('{$sourceColumn}')->
 			setReference(
-				\$schema->
+				\$schemes['{$class->getSourceLink()}']->
 					getTableByName('{$targetTable}')->
 					getColumnByName('{$targetColumn}'),
 				ForeignChangeAction::restrict(),
@@ -207,11 +211,16 @@ EOT;
 			return $out;
 		}
 
-		public static function getHead()
+		public static function getHead(array $sourceNames = [])
 		{
 			$out = parent::getHead();
 
-			$out .= "\$schema = new DBSchema();\n\n";
+            $out .= "/** @var DBSchema[] \$schemes */\n";
+            $out .= "\$schemes = [\n";
+			foreach ($sourceNames as $sourceName) {
+                $out .= "   '$sourceName' => new DBSchema(),\n";
+            }
+            $out .= "];\n\n";
 
 			return $out;
 		}

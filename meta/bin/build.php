@@ -63,6 +63,12 @@ Possible options:
 				'ONPHP_META_BUSINESS_DIR',
 				PATH_CLASSES.'Business'.DIRECTORY_SEPARATOR
 			);
+
+		if (!defined('PATH_MIGRATIONS'))
+			define(
+				'PATH_MIGRATIONS',
+				PATH_CLASSES.'Migrations'.DIRECTORY_SEPARATOR
+			);
 		
 		if (!defined('ONPHP_META_PROTO_DIR'))
 			define(
