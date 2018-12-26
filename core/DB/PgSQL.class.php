@@ -302,7 +302,7 @@
 							->from('information_schema.columns')
 							->where(Expression::andBlock(
 								Expression::eq('table_schema', 'public'),
-								Expression::eq('table_catalog', $this->basename),
+								Expression::eq('table_catalog', SQLFunction::create('current_database')),
 								Expression::eq('table_name', $table->getName()),
 								Expression::eq('column_name', $name)
 							))
