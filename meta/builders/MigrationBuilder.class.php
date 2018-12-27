@@ -25,7 +25,7 @@ final class MigrationBuilder extends BaseBuilder
         $out .= "    const ID = '$migrationId';\n";
         $out .= "\n";
 
-        $out .= "    protected function up()\n";
+        $out .= "    public function up()\n";
         $out .= "    {\n";
         $out .= "        \$this->execute(\n";
         $out .= "            /** @lang {$dialect->getLanguageName()} */\n";
@@ -38,7 +38,7 @@ final class MigrationBuilder extends BaseBuilder
         $out .= "    }\n";
         $out .= "\n";
 
-        $out .= "    protected function down()\n";
+        $out .= "    public function down()\n";
         $out .= "    {\n";
         $out .= "            \$this->execute(\n";
         $out .= "            /** @lang {$dialect->getLanguageName()} */\n";
