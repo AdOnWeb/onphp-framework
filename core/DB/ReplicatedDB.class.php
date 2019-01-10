@@ -193,8 +193,12 @@ class ReplicatedDB extends MultiDB
         return $res;
     }
 
-    public function fullsyncTable($tableName, $onlySchema = false) {
+    public function fullsyncTable($tableName, $onlySchema = false, ProgressReporter $progress = null) {
         assert($this->getTableLocker() !== null, 'locker should be set');
+
+        if (!$progress) {
+            $progress = new NullProgressReporter();
+        }
 
         if (!$this->getTableLocker()->get($tableName)) {
             throw new WrongStateException($tableName . ' is already being replicated');
@@ -227,14 +231,17 @@ class ReplicatedDB extends MultiDB
 
             $totalRows = $totalRows['count'];
             $blockSize = 1000;
+            $progress->setTotal($totalRows);
             for ($i = 0; $i < $totalRows; $i += $blockSize) {
-                CronJob::out('Mirroring ' . $i . '-' . ($i + $blockSize) . ' / ' . $totalRows);
+                $progress->update($i, 'mirroring ' . $i . '-' . ($i + $blockSize));
+
                 $block = $this->getPrimary()->querySet(
                     $selectQuery->limit($blockSize, $i)
                 );
-                CronJob::out(' .. fetched block');
 
-                foreach ($block as $i => $row) {
+                $progress->update($i, 'fetched block');
+
+                foreach ($block as $j => $row) {
                     $insertQuery = OSQL::insert()
                         ->into($tableName)
                         ->arraySet($row);
@@ -248,7 +255,8 @@ class ReplicatedDB extends MultiDB
                             );
                         }
                     }
-                    CronJob::out(' .. inserted ' . $i);
+
+                    $progress->update($i + $j, 'inserting');
                 }
             }
 
