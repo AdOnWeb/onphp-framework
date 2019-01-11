@@ -183,7 +183,7 @@ class MongoBase extends NoSQL
      */
     public function obtainSequence($sequence)
     {
-        return new MongoId(mb_strtolower(trim($sequence)));
+        return new MongoId();
     }
 
     public function selectOne($table, $key)
@@ -192,7 +192,7 @@ class MongoBase extends NoSQL
             $this
                 ->db
                 ->selectCollection($table)
-                ->findOne([ '_id' => new MongoId($key) ]);
+                ->findOne(static::makeIdQuery($key));
         if (is_null($row)) {
             throw new ObjectNotFoundException('Object with id "' . $key . '" in table "' . $table . '" not found!');
         }
@@ -207,7 +207,7 @@ class MongoBase extends NoSQL
             $this
                 ->db
                 ->selectCollection($table)
-                ->find([ '_id' => [ '$in' => $this->makeIdList($keys) ] ]);
+                ->find(static::makeIdQuery($keys));
         // recieving objects
         $rows = [];
         foreach ($cursor as $row) {
@@ -320,7 +320,7 @@ class MongoBase extends NoSQL
             unset($options['where']);
 
         } else if ($id !== null) {
-            $where = [ '_id' => $id ];
+            $where = static::makeIdQuery($id);
         }
 
         if (empty($where)) {
@@ -386,7 +386,7 @@ class MongoBase extends NoSQL
             $this
                 ->db
                 ->selectCollection($table)
-                ->remove([ '_id' => $this->makeId($key) ], [ 'justOne' => true ]);
+                ->remove(static::makeIdQuery($key), [ 'justOne' => true ]);
     }
 
     public function deleteList($table, array $keys)
@@ -395,7 +395,7 @@ class MongoBase extends NoSQL
             $this
                 ->db
                 ->selectCollection($table)
-                ->remove([ '_id' => [ '$in' => $this->makeIdList($keys) ] ]);
+                ->remove(static::makeIdQuery($keys));
     }
 
     public function getPlainList($table)
@@ -708,19 +708,19 @@ class MongoBase extends NoSQL
         return $row;
     }
 
-    protected function makeId($key)
+    public static function makeId($key)
     {
         return ($key instanceof MongoId) ? $key : new MongoId($key);
     }
 
-    protected function makeIdList(array $keys)
+    public static function makeIdQuery($key)
     {
-        $fields = [];
-        foreach ($keys as $key) {
-            //$fields[] = array( '_id'=>$this->makeId($key) );
-            $fields[] = $this->makeId($key);
+        if (is_array($key)) {
+            $keys = array_map(function ($key) { return static::makeId($key); }, $key);
+            return [ '_id' => [ '$in' => $keys ]];
+        } else {
+            return [ '_id' => static::makeId($key) ];
         }
-        return $fields;
     }
 
     /**
