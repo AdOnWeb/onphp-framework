@@ -1,11 +1,12 @@
 <?php
+
 /**
  * Class for StorageEngineURL
  * @author Aleksandr Babaev <babaev@adonweb.ru>
  * @date   2013.01.1/23/13
  */
-class StorageEngineURL extends StorageEngine{
-
+class StorageEngineURL extends StorageEngine
+{
     protected $hasHttpLink = true;
     protected $canReadRemote = true;
     protected $ownNamingPolicy = true;
@@ -14,31 +15,37 @@ class StorageEngineURL extends StorageEngine{
 
     protected $trusted = false;
 
-    protected function checkUrl ($url) {
-		Url::create()->parse($url);
-		return $this;
+    protected function checkUrl($url)
+    {
+        Url::create()->parse($url);
+        return $this;
     }
 
-    public function getHttpLink ($url) {
+    public function getHttpLink($url)
+    {
         $this->checkUrl($url);
         return $url;
     }
 
-    public function storeRemote ($link, $desiredName=null) {
+    public function storeRemote($link, $desiredName = null)
+    {
         $this->checkUrl($link);
         return $link;
     }
 
-    public function get ($url) {
+    public function get($url)
+    {
         $this->checkUrl($url);
         return parent::storeRemote($url);
     }
 
-    public function store ($local_file, $desiredName) {
+    public function store($local_file, $desiredName)
+    {
         throw new Exception('Can not store temporary file');
     }
 
-    public function exists ($url) {
+    public function exists($url)
+    {
         $this->checkUrl($url);
         $this->httpExists($url);
     }

@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Class for StorageEngineHTTP
  * @author Aleksandr Babaev <babaev@adonweb.ru>
  * @date   2013.01.1/23/13
  */
-class StorageEngineHTTP extends StorageEngine{
+class StorageEngineHTTP extends StorageEngine
+{
     protected $hasHttpLink = false;
     protected $canReadRemote = false;
     protected $ownNamingPolicy = true;
@@ -13,12 +15,13 @@ class StorageEngineHTTP extends StorageEngine{
 
     protected $uploadUrl = null;
     protected $httpLink = null;
-    protected $uploadOptions = array();
+    protected $uploadOptions = [];
 
     protected $uploadFieldName = 'file';
     protected $urlFieldName = 'url';
 
-    protected function parseConfig($data) {
+    protected function parseConfig($data)
+    {
 
         if (isset($data['uploadUrl'])) {
             $this->uploadUrl = $data['uploadUrl'];
@@ -29,7 +32,7 @@ class StorageEngineHTTP extends StorageEngine{
             $this->httpLink = $data['httpLink'];
         }
 
-        if (isset($data['uploadOptions'])&&is_array($data['uploadOptions'])) {
+        if (isset($data['uploadOptions']) && is_array($data['uploadOptions'])) {
             $this->uploadOptions = $data['uploadOptions'];
         }
 
@@ -42,33 +45,35 @@ class StorageEngineHTTP extends StorageEngine{
         }
     }
 
-    public function get($file) {
+    public function get($file)
+    {
         return parent::storeRemote($this->getHttpLink($file));
     }
 
-    public function store($file, $desiredName) {
+    public function store($file, $desiredName)
+    {
         if (!$this->uploadUrl) {
             throw new UnsupportedMethodException('Don`t know how to store file!');
         }
 
-		$sendRequest = HttpRequest::create()
+        $sendRequest = HttpRequest::create()
             ->setMethod(HttpMethod::post())
             ->setUrl(
-            HttpUrl::create()
-                ->parse($this->uploadUrl)
-        );
+                HttpUrl::create()
+                    ->parse($this->uploadUrl)
+            );
 
         $options = array_merge(
             $this->uploadOptions,
-            array(
-                $this->uploadFieldName => '@'.$file
-            )
+            [
+                $this->uploadFieldName => '@' . $file,
+            ]
         );
 
         $curl = CurlHttpClient::create()
-            ->setOption(CURLOPT_POSTFIELDS,$options);
+            ->setOption(CURLOPT_POSTFIELDS, $options);
 
-        $upload = function() use ($curl, $sendRequest) {
+        $upload = function () use ($curl, $sendRequest) {
             $resp = $curl->send($sendRequest);
             return $resp;
         };
@@ -78,7 +83,8 @@ class StorageEngineHTTP extends StorageEngine{
         return $resp->getBody();
     }
 
-    public function exists($file) {
+    public function exists($file)
+    {
         if ($this->hasHttpLink()) {
             return $this->httpExists($this->getHttpLink($file));
         }

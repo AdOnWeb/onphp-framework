@@ -5,99 +5,108 @@
  *   This file will never be generated again - feel free to edit.            *
  *****************************************************************************/
 
-	class StorageEngineType extends Enumeration
-	{
-        const
-            TMP 		= 0,
-            UPLOADED   	= 1, // Our UploadedFile
-            URL         = 2,
-            WEBDAV     	= 10,
-            FTP      	= 20,
-            IMAGESHACK 	= 30,
-			LOCAL 		= 40;
+class StorageEngineType extends Enumeration
+{
+    const
+        TMP = 0,
+        UPLOADED = 1, // Our UploadedFile
+        URL = 2,
+        WEBDAV = 10,
+        FTP = 20,
+        IMAGESHACK = 30,
+        LOCAL = 40;
 
-        protected $names = array(
-            self::TMP    	    => 'StorageEngine',
-            self::UPLOADED 	    => 'StorageEngineUploadedStatic',
-            self::URL    	    => 'StorageEngineURL',
-            self::WEBDAV        => 'StorageEngineWebDAV',
-            self::FTP    	    => 'StorageEngineFTP',
-            self::IMAGESHACK	=> 'StorageEngineImageShack',
-            self::LOCAL			=> 'StorageEngineLocal',
-        );
+    protected $names = [
+        self::TMP        => 'StorageEngine',
+        self::UPLOADED   => 'StorageEngineUploadedStatic',
+        self::URL        => 'StorageEngineURL',
+        self::WEBDAV     => 'StorageEngineWebDAV',
+        self::FTP        => 'StorageEngineFTP',
+        self::IMAGESHACK => 'StorageEngineImageShack',
+        self::LOCAL      => 'StorageEngineLocal',
+    ];
 
-        /**
-         * @staticx
-         * @param $id
-         * @return StorageEngineType
-         */
-        public static function create($id) {
-            return new static($id);
+    /**
+     * @staticx
+     * @param $id
+     * @return StorageEngineType
+     */
+    public static function create($id)
+    {
+        return new static($id);
+    }
+
+    /**
+     * @static
+     * @param $var String|Object
+     * @return StorageEngineType
+     */
+    public static function getByClass($var)
+    {
+        $id = false;
+        if (gettype($var) == 'object') {
+            $var = get_class($var);
         }
 
-        /**
-         * @static
-         * @param $var String|Object
-         * @return StorageEngineType
-         */
-        public static function getByClass($var){
-            $id = false;
-            if( gettype($var) == 'object' ){
-                $var = get_class($var);
-            }
-
-            if( is_scalar($var) ){
-                $id = array_search( $var, self::makeNameList(), true);
-            }
-
-            if($id === false) {
-                throw new MissingElementException('No such Storage Engine: ' . $var);
-			}
-
-            return self::create($id);
+        if (is_scalar($var)) {
+            $id = array_search($var, self::makeNameList(), true);
         }
 
-		/**
-		 * @return StorageEngineType
-		 */
-		public static function tmp() {
-			return new self(self::TMP);
-		}
+        if ($id === false) {
+            throw new MissingElementException('No such Storage Engine: ' . $var);
+        }
 
-		/**
-		 * @return StorageEngineType
-		 */
-		public static function uploaded() {
-			return new self(self::UPLOADED);
-		}
+        return self::create($id);
+    }
 
-		/**
-		 * @return StorageEngineType
-		 */
-		public static function url() {
-			return new self(self::URL);
-		}
+    /**
+     * @return StorageEngineType
+     */
+    public static function tmp()
+    {
+        return new self(self::TMP);
+    }
 
-		/**
-		 * @return StorageEngineType
-		 */
-		public static function webdav() {
-			return new self(self::WEBDAV);
-		}
+    /**
+     * @return StorageEngineType
+     */
+    public static function uploaded()
+    {
+        return new self(self::UPLOADED);
+    }
 
-		/**
-		 * @return StorageEngineType
-		 */
-		public static function ftp() {
-			return new self(self::FTP);
-		}
+    /**
+     * @return StorageEngineType
+     */
+    public static function url()
+    {
+        return new self(self::URL);
+    }
 
-		/**
-		 * @return StorageEngineType
-		 */
-		public static function imageShack() {
-			return new self(self::IMAGESHACK);
-		}
+    /**
+     * @return StorageEngineType
+     */
+    public static function webdav()
+    {
+        return new self(self::WEBDAV);
+    }
 
-	}
+    /**
+     * @return StorageEngineType
+     */
+    public static function ftp()
+    {
+        return new self(self::FTP);
+    }
+
+    /**
+     * @return StorageEngineType
+     */
+    public static function imageShack()
+    {
+        return new self(self::IMAGESHACK);
+    }
+
+}
+
 ?>

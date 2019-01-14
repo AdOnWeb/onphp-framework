@@ -5,10 +5,9 @@
  * @date   2014.05.18
  */
 
-class StorageConfig extends Singleton{
-
-    protected $configs = array();
-
+class StorageConfig extends Singleton
+{
+    protected $configs = [];
     protected $default = null;
 
     /** @return StorageConfig */
@@ -17,9 +16,10 @@ class StorageConfig extends Singleton{
         return Singleton::getInstance(__CLASS__);
     }
 
-    public function addConfig(StorageEngineType $type, $link, $config) {
-        if(!$config) {
-            if(isset($this->configs[$type->getId()][$link])) {
+    public function addConfig(StorageEngineType $type, $link, $config)
+    {
+        if (!$config) {
+            if (isset($this->configs[$type->getId()][$link])) {
                 unset($this->configs[$type->getId()][$link]);
             }
         } else {
@@ -27,19 +27,22 @@ class StorageConfig extends Singleton{
         }
     }
 
-    public function getConfig(StorageEngineType $type, $link) {
-        if(!isset($this->configs[$type->getId()][$link])) {
-            return array();
+    public function getConfig(StorageEngineType $type, $link)
+    {
+        if (!isset($this->configs[$type->getId()][$link])) {
+            return [];
         }
         return $this->configs[$type->getId()][$link];
     }
 
-    public function setDefaultEngine(StorageEngineType $engine) {
+    public function setDefaultEngine(StorageEngineType $engine)
+    {
         $this->default = $engine;
         return $this;
     }
 
-    public function getDefaultEngine() {
+    public function getDefaultEngine()
+    {
         return $this->default;
     }
 

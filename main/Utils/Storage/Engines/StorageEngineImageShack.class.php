@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class for StorageEngineImageShack
  * @author Aleksandr Babaev <babaev@adonweb.ru>
@@ -8,8 +9,8 @@ class StorageEngineImageShack extends StorageEngineHTTP
 {
     protected $hasHttpLink = true;
 
-    public function store($localFile, $desiredName) {
-
+    public function store($localFile, $desiredName)
+    {
         $xml = simplexml_load_string(parent::store($localFile, $desiredName));
 
         if (isset($xml->error)) {

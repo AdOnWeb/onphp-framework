@@ -5,19 +5,25 @@
  * @date   2014.05.15
  */
 
-abstract class StorableFile extends IdentifiableObject implements onBeforeSave, onAfterDrop {
-
+abstract class StorableFile extends IdentifiableObject implements onBeforeSave, onAfterDrop
+{
+    /** @var string */
     protected $fileName = null;
+    /** @var string */
     protected $mimeType = null;
+    /** @var string|null */
     protected $originalFileName = null;
+    /** @var int */
     protected $size = null;
+    /** @var Timestamp */
     protected $createDate = null;
+    /** @var StorageEngineType */
     protected $engineType = null;
     protected $engineTypeId = null;
     protected $engineConfig = null;
 
     protected $baseStorageEngineId = null;
-    protected $baseStorageEngineConfig =null;
+    protected $baseStorageEngineConfig = null;
     protected $storageChanged = false;
     protected $cloned = false;
     protected $clonedFrom = 0;
@@ -26,17 +32,20 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
     protected $storage = null;
 
     /**
-     * @return StorableFile
+     * @return $this
      **/
-    public static function create() {
-        return new static();
+    public static function create()
+    {
+        return new static;
     }
 
-    public function onBeforeSave() {
+    public function onBeforeSave()
+    {
         $this->applyStorageChanges();
     }
 
-    public function onAfterDrop() {
+    public function onAfterDrop()
+    {
         $this->markRemoved();
     }
 
@@ -46,14 +55,14 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
      **/
     public static function createFromPost(array $file)
     {
-        $upload_fields = array('name', 'type', 'size', 'tmp_name', 'error');
-        $check = array_diff( array_keys($file), $upload_fields );
+        $upload_fields = [ 'name', 'type', 'size', 'tmp_name', 'error' ];
+        $check = array_diff(array_keys($file), $upload_fields);
 
-        if ( !empty($check) ) {
+        if (!empty($check)) {
             throw new WrongArgumentException('Not an uploaded file given');
         }
 
-        if ($file['error']>0) {
+        if ($file['error'] > 0) {
             throw new Exception('Error in uploaded file', $file['error']);
         }
 
@@ -77,7 +86,8 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
      * @return static
      * @throws WrongArgumentException
      */
-    public static function createFromUrl($url) {
+    public static function createFromUrl($url)
+    {
         if (!preg_match('@^(https?|ftp)://@', $url)) {
             throw new WrongArgumentException('not a valid URL: ' . $url);
         }
@@ -92,32 +102,38 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
     /**
      * @return StorageEngineType
      **/
-    public static function getDefaultStorage() {
+    public static function getDefaultStorage()
+    {
         try {
             $default = StorageConfig::me()->getDefaultEngine();
-        }
-        catch(Exception $e) {
+        } catch (Exception $e) {
             throw new Exception('No default storage found', 0, $e);
         }
 
         return $default;
     }
 
-
-    public function getFileName() {
+    /**
+     * @return string|null
+     */
+    public function getFileName()
+    {
         return $this->fileName;
     }
 
-    /** @return static **/
+    /**
+     * @param $fileName
+     * @return $this
+     */
     public function setFileName($fileName)
     {
-        if ($fileName === null||!strlen($fileName)) {
+        if ($fileName === null || !strlen($fileName)) {
             throw new WrongArgumentException('File name can not be empty');
         }
         if ($this->baseFileName === null) {
             $this->baseFileName = $fileName;
         }
-        
+
         $this->fileName = $fileName;
 
         return $this;
@@ -128,53 +144,62 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
         return $this->mimeType;
     }
 
-    /** @return static **/
-    public function setMimeType($mimeType) {
+    /** @return static * */
+    public function setMimeType($mimeType)
+    {
         $this->mimeType = $mimeType;
 
         return $this;
     }
 
-    public function getOriginalFileName() {
+    public function getOriginalFileName()
+    {
         return $this->originalFileName;
     }
 
-    /** @return static **/
-    public function setOriginalFileName($originalFileName) {
+    /** @return static * */
+    public function setOriginalFileName($originalFileName)
+    {
         $this->originalFileName = $originalFileName;
 
         return $this;
     }
 
-    public function getSize() {
+    public function getSize()
+    {
         return $this->size;
     }
 
-    /** @return static **/
-    public function setSize($size) {
+    /** @return static * */
+    public function setSize($size)
+    {
         $this->size = $size;
         return $this;
     }
 
-    /** @return Timestamp **/
-    public function getCreateDate() {
+    /** @return Timestamp * */
+    public function getCreateDate()
+    {
         return $this->createDate;
     }
 
-    /** @return static **/
-    public function setCreateDate(Timestamp $createDate) {
+    /** @return static * */
+    public function setCreateDate(Timestamp $createDate)
+    {
         $this->createDate = $createDate;
         return $this;
     }
 
-    /** @return static **/
-    public function dropCreateDate() {
+    /** @return static * */
+    public function dropCreateDate()
+    {
         $this->createDate = null;
         return $this;
     }
 
-    /** @return StorageEngineType **/
-    public function getEngineType() {
+    /** @return StorageEngineType * */
+    public function getEngineType()
+    {
         if (!$this->engineType && $this->engineTypeId) {
             $this->engineType = new StorageEngineType($this->engineTypeId);
         }
@@ -182,34 +207,36 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
         return $this->engineType;
     }
 
-    public function getEngineTypeId() {
+    public function getEngineTypeId()
+    {
         return $this->engineType
             ? $this->engineType->getId()
             : $this->engineTypeId;
     }
 
-    /** @return static **/
-    public function setEngineType(StorageEngineType $engineType) {
+    /** @return static * */
+    public function setEngineType(StorageEngineType $engineType)
+    {
         $this->parseEngineId($engineType->getId());
-        
+
         $this->engineType = $engineType;
         $this->engineTypeId = $engineType->getId();
 
         return $this;
     }
 
-    /** @return static **/
+    /** @return static * */
     public function setEngineTypeId($id)
     {
         $this->parseEngineId($id);
-        
+
         $this->engineType = null;
         $this->engineTypeId = $id;
 
         return $this;
     }
 
-    /** @return static **/
+    /** @return static * */
     public function dropEngineType()
     {
         $this->engineType = null;
@@ -223,12 +250,12 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
         return $this->engineConfig;
     }
 
-    /** @return static **/
+    /** @return static * */
     public function setEngineConfig($engineConfig)
     {
         $this->engineConfig = $engineConfig;
 
-        if ( $this->baseStorageEngineConfig === null && !$this->storageChanged ) {
+        if ($this->baseStorageEngineConfig === null && !$this->storageChanged) {
             $this->baseStorageEngineConfig = $this->engineConfig;
         }
 
@@ -240,45 +267,50 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
     }
 
 
-    public function isStorageChanged() {
+    public function isStorageChanged()
+    {
         return $this->storageChanged;
     }
 
-    protected function getBaseStorageEngineTypeId() {
+    protected function getBaseStorageEngineTypeId()
+    {
         return $this->baseStorageEngineId;
     }
 
-    protected function getBaseStorageEngineType() {
+    protected function getBaseStorageEngineType()
+    {
         return StorageEngineType::create($this->baseStorageEngineId);
     }
 
-    protected function parseEngineId($id) {
-        if ( $this->baseStorageEngineId === null ) {
+    protected function parseEngineId($id)
+    {
+        if ($this->baseStorageEngineId === null) {
             $this->baseStorageEngineId = $id;
             if ($this->baseStorageEngineConfig === null) {
                 $this->baseStorageEngineConfig = $this->engineConfig;
             }
-        }
-        elseif ($this->baseStorageEngineId != $id) {
-			$this->storageChanged = true;
+        } else if ($this->baseStorageEngineId != $id) {
+            $this->storageChanged = true;
         }
         $this->engineConfig = null;
     }
 
-    public function getBaseStorageEngineConfig() {
-        if ( !$this->storageChanged ) {
+    public function getBaseStorageEngineConfig()
+    {
+        if (!$this->storageChanged) {
             return $this->engineConfig;
-        }
-        else {
+        } else {
             return $this->baseStorageEngineConfig;
         }
     }
 
-    public function markRemoved($removed=true) {
+    public function markRemoved($removed = true)
+    {
         $this->removed = (bool)$removed;
     }
 
-    public function generateName() {
+    public function generateName()
+    {
         $name = str_replace('.', '', microtime(true));
         if ($this->mimeType) {
             try {
@@ -291,43 +323,50 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
         return $name;
     }
 
-    public function isRenamed() {
+    public function isRenamed()
+    {
         return $this->baseFileName !== $this->fileName;
     }
 
-    public function isRemoved() {
+    public function isRemoved()
+    {
         return $this->removed;
     }
 
-    public function isCloned() {
+    public function isCloned()
+    {
         return $this->cloned;
     }
 
-    protected function getBaseFileName() {
-        if ($this->baseFileName!==null) {
+    protected function getBaseFileName()
+    {
+        if ($this->baseFileName !== null) {
             return $this->baseFileName;
         }
         return $this->getFileName();
     }
 
-	public function getLink($stripScheme = false) {
-	    $link = StorageEngine::create(StorageEngineType::create($this->getBaseStorageEngineTypeId()), $this->getBaseStorageEngineConfig())
-            ->getHttpLink( $this->getBaseFileName() );
-	    if( $stripScheme ) {
-		    $link = str_replace(['http:', 'https:'], '', $link);
-	    }
-	    return $link;
+    public function getLink($stripScheme = false)
+    {
+        $link = StorageEngine::create(StorageEngineType::create($this->getBaseStorageEngineTypeId()), $this->getBaseStorageEngineConfig())
+            ->getHttpLink($this->getBaseFileName());
+        if ($stripScheme) {
+            $link = str_replace([ 'http:', 'https:' ], '', $link);
+        }
+        return $link;
     }
 
-    public function getFile() {
-        if (!$this->storage && $this->getBaseStorageEngineTypeId() !== null ) {
+    public function getFile()
+    {
+        if (!$this->storage && $this->getBaseStorageEngineTypeId() !== null) {
             $this->storage = StorageEngine::create(StorageEngineType::create($this->getBaseStorageEngineTypeId()), $this->getBaseStorageEngineConfig());
         }
         return $this->storage
-            ->get( $this->getBaseFileName() );
+            ->get($this->getBaseFileName());
     }
 
-    public function applyStorageChanges() {
+    public function applyStorageChanges()
+    {
         if (
             !$this->storageChanged       // Если хранилище не изменилось
             && !$this->isCloned()       // не было копирования
@@ -336,25 +375,23 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
             return $this;            // то нам делать нечего.
         }
 
-        $to = StorageEngine::create( StorageEngineType::create($this->engineTypeId), $this->engineConfig );
+        $to = StorageEngine::create(StorageEngineType::create($this->engineTypeId), $this->engineConfig);
 
         if (!$this->storageChanged) {
             // Скопировали в то же хранилище
             $from = $to;
-        }
-        else {
-            $from = StorageEngine::create( StorageEngineType::create($this->baseStorageEngineId), $this->baseStorageEngineConfig );
+        } else {
+            $from = StorageEngine::create(StorageEngineType::create($this->baseStorageEngineId), $this->baseStorageEngineConfig);
         }
 
         $oldName = $this->getBaseFileName();
         if (!$this->isRenamed()) {
             $desiredName = ($oldName                // Если есть старое имя,
                 && !$this->isCloned()               // не было копирования
-                && !$from->hasOwnNamingPolicy())?   // и исходное хранилище поддерживает наши имена,
-                $oldName:                           // тогда можно использовать это имя,
+                && !$from->hasOwnNamingPolicy()) ?   // и исходное хранилище поддерживает наши имена,
+                $oldName :                           // тогда можно использовать это имя,
                 $this->generateName();              // иначе - сгенерировать новое
-        }
-        else {
+        } else {
             $desiredName = $this->getFileName();
         }
 
@@ -369,17 +406,14 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
             $from->rename($oldName, $desiredName);
             $noNeedToUnlink = true;
             $newName = $desiredName;
-        }
-        else {
+        } else {
             if ($from === $to && $to->canCopy()) {
                 $newName = $to->copy($oldName, $desiredName);
-            }
-            else {
+            } else {
                 if ($from->hasHttpLink() && $to->canReadRemote()) {
-                    $newName = $to->storeRemote( $from->getHttpLink($oldName), $desiredName );
-                }
-                else {
-                    $newName = $to->store( $from->get($oldName), $desiredName );
+                    $newName = $to->storeRemote($from->getHttpLink($oldName), $desiredName);
+                } else {
+                    $newName = $to->store($from->get($oldName), $desiredName);
                 }
             }
         }
@@ -394,7 +428,7 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
             $this->setSize($data['size']);
         }
 
-        if ( !$this->isCloned() && $to->isTrusted() && !$noNeedToUnlink ) {
+        if (!$this->isCloned() && $to->isTrusted() && !$noNeedToUnlink) {
             $from->remove($oldName);
         }
 
@@ -411,23 +445,25 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
         return $this;
     }
 
-    public function __clone() {
+    public function __clone()
+    {
         $vars = get_object_vars($this);
         foreach ($vars as $key => $val) {
             if (is_object($val)) {
-				$this->{$key} = clone $val;
-			}
+                $this->{$key} = clone $val;
+            }
         }
         $this->createDate = Timestamp::makeNow();
         $this->cloned = true;
-        $this->clonedFrom = $this->id?
-            $this->id:
+        $this->clonedFrom = $this->id ?
+            $this->id :
             $this->clonedFrom;
         $this->setId(null);
         $this->removed = false;
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         if ($this->isRemoved()) {
             try {
                 $engine = $this->engineTypeId;
@@ -437,10 +473,10 @@ abstract class StorableFile extends IdentifiableObject implements onBeforeSave, 
                     $engine = $this->baseStorageEngineId;
                     $config = $this->baseStorageEngineConfig;
                 }
-                $storage = StorageEngine::create( StorageEngineType::create($engine), $config );
+                $storage = StorageEngine::create(StorageEngineType::create($engine), $config);
                 $storage->remove($this->getFileName());
+            } catch (Exception $e) {
             }
-            catch(Exception $e) {}
         }
     }
 
