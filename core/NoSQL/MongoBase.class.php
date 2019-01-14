@@ -717,7 +717,7 @@ class MongoBase extends NoSQL
     {
         if (is_array($key)) {
             $keys = array_map(function ($key) { return static::makeId($key); }, $key);
-            return [ '_id' => [ '$in' => $keys ]];
+            return [ '_id' => [ '$in' => array_values($keys) ]];
         } else {
             return [ '_id' => static::makeId($key) ];
         }
