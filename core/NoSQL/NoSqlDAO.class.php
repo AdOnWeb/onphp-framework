@@ -533,9 +533,9 @@ abstract class NoSqlDAO extends StorableDAO {
 		$object = null;
 		try {
 			$object = $this->makeObject( $row, $prefix );
-		} catch(Exception $e) {
-			throw new WrongStateException( 'Can not make object with id '.$row['id'].'. Dump: '.var_export($row, true) );
-		}
+        } catch (Exception $e) {
+            throw new WrongStateException('Can not make object with id ' . $row['id'] . '. Dump: ' . var_export($row, true), 0, $e);
+        }
 		return $object;
 	}
 
