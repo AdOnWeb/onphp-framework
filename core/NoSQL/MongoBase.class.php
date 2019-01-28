@@ -723,6 +723,12 @@ class MongoBase extends NoSQL
         }
     }
 
+    public function createIndex($table, array $keys, $unique = false)
+    {
+        return $this->db->selectCollection($table)
+            ->createIndex($keys, [ 'background' => true, 'unique' => $unique ]);
+    }
+
     /**
      * Разбираем критерию на параметры запроса к монго
      * @param Criteria $criteria
