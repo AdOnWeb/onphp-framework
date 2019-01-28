@@ -453,7 +453,7 @@
 				}
 			}
 
-			if (strpos($this->type, 'arrayOf') !== false) {
+			if (strpos($this->type, 'arrayOf') !== false && !($dao instanceof NoSqlDAO)) {
 				// PgSQL driver compatibility
 				$matches = array();
 				if ($this->type == 'arrayOfIntegers') {
