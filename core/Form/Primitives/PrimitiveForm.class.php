@@ -14,11 +14,9 @@
 	**/
 	class PrimitiveForm extends BasePrimitive
 	{
-	    /** @var AbstractProtoClass|EntityProto */
-		private $proto = null;
-		/** @var Form */
-		private $form = null;
-		
+	    /** @var FormProvider */
+		private $formProvider = null;
+
 		private $composite = false;
 		
 		/**
@@ -37,48 +35,35 @@
 			
 			return $this->ofProto(Singleton::getInstance($protoClass));
 		}
-		
-		/**
-		 * @throws WrongArgumentException
-		 * @return PrimitiveForm
-		**/
-		public function ofProto(EntityProto $proto)
-		{
-			$this->proto = $proto;
-            $this->form = null;
 
-			return $this;
+        /** @deprecated use setProvider */
+        public function ofProto(EntityProto $proto)
+		{
+			return $this->setProvider($proto);
 		}
 
+		/** @deprecated use setProvider */
 		public function ofAutoProto(AbstractProtoClass $proto)
 		{
-			$this->proto = $proto;
-			$this->form = null;
-
-			return $this;
+            return $this->setProvider($proto);
 		}
 
-        public function ofForm(Form $form)
+        public function setProvider(FormProvider $formProvider)
         {
-            $this->form = $form;
-            $this->proto = null;
+            $this->formProvider = $formProvider;
 
             return $this;
 		}
 
         public function makeForm()
         {
-            if (!$this->form) {
-                if (!$this->proto) {
-                    throw new WrongStateException(
-                        "no proto defined for PrimitiveFormsList '{$this->name}'"
-                    );
-                }
-
-                $this->form = $this->proto->makeForm();
+            if (!$this->formProvider) {
+                throw new WrongStateException(
+                    "no form provider defined for PrimitiveFormsList '{$this->name}'"
+                );
             }
 
-            return clone $this->form;
+            return $this->formProvider->makeForm();
 		}
 		
 		/**
@@ -100,12 +85,25 @@
 		
 		public function getClassName()
 		{
-			return $this->proto->className();
+		    if ($this->formProvider instanceof EntityProto) {
+                return $this->formProvider->className();
+            } else {
+		        throw new WrongStateException('formProvider is not EntityProto');
+            }
 		}
 		
 		public function getProto()
 		{
-			return $this->proto;
+            if ($this->formProvider instanceof EntityProto) {
+                return $this->formProvider;
+            } else {
+                throw new WrongStateException('formProvider is not EntityProto');
+            }
+		}
+
+        public function getFormProvider()
+        {
+            return $this->formProvider;
 		}
 		
 		/**
@@ -167,18 +165,13 @@
 		
 		private function actualImport($scope, $importFiltering)
 		{
-			if (!$this->proto)
-				throw new WrongStateException(
-					"no proto defined for PrimitiveForm '{$this->name}'"
-				);
-			
 			if (!isset($scope[$this->name]))
 				return null;
 			
 			$this->raw = $scope[$this->name];
 			
 			if (!$this->value || !$this->composite)
-				$this->value = $this->proto->makeForm();
+				$this->value = $this->makeForm();
 			
 			if (!$importFiltering) {
 				$this->value->

@@ -9,7 +9,7 @@
  *                                                                         *
  ***************************************************************************/
 
-	class EntityProto extends Singleton
+	class EntityProto extends Singleton implements FormProvider
 	{
 		const PROTO_CLASS_PREFIX = 'EntityProto';
 		

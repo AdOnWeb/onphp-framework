@@ -165,5 +165,15 @@
 		{
 			return $this->primitives;
 		}
-	}
+
+        public function __clone()
+        {
+            $this->primitives = array_map(
+                function ($prm) { return clone $prm; }, 
+                $this->primitives
+            );
+        }
+
+
+    }
 ?>

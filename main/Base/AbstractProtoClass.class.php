@@ -12,7 +12,7 @@
 	/**
 	 * @ingroup Helpers
 	**/
-	abstract class AbstractProtoClass extends Singleton
+	abstract class AbstractProtoClass extends Singleton implements FormProvider
 	{
 		private $depth = 0;
 		private $storage = array();
