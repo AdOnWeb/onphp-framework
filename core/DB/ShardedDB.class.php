@@ -142,6 +142,9 @@ class ShardedDB extends MultiDB
             'only SELECT queries are supported'
         );
         $set = $this->runSelectQuery($query);
+        if (count($set) == 0) {
+            return null;
+        }
         return $set[0];
     }
 
