@@ -710,7 +710,17 @@ class MongoBase extends NoSQL
 
     public static function makeId($key)
     {
-        return ($key instanceof MongoId) ? $key : new MongoId($key);
+        if ($key instanceof MongoId) {
+            return $key;
+        } else if ($key instanceof MongoCustomId) {
+            return $key->getValue();
+        } else if ($key === null) {
+            return new MongoId();
+        } else if (MongoId::isValid($key)) {
+            return new MongoId($key);
+        } else {
+            return $key;
+        }
     }
 
     public static function makeIdQuery($key)
