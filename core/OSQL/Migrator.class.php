@@ -77,6 +77,8 @@ class Migrator implements \Psr\Log\LoggerAwareInterface
             }
         );
 
+        usort($notApplied, function ($a, $b) { return $this->migrationsSorter($a, $b); });
+
         $this->logger->info('Database needs ' . count($notApplied) . ' migrations');
 
         foreach ($notApplied as $migration) {
