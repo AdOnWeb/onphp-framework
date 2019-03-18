@@ -69,6 +69,9 @@ class DataGrid extends BaseWidget
     /** @var array аттрибуты строки таблицы */
     public $rowAttrs = array();
 
+    /** @var array */
+    protected $fieldGroups = [];
+
     /**
      * Создает таблицу вида сводки (заголовок слева)
      * @static
@@ -959,6 +962,12 @@ class DataGrid extends BaseWidget
         return $this;
     }
 
+    public function groupFields($title, array $fields)
+    {
+        $this->fieldGroups []= [ $title, $fields ];
+        return $this;
+    }
+
     /**
      * @return Model
      */
@@ -1061,6 +1070,20 @@ class DataGrid extends BaseWidget
             $this->formHtmlOptions
         ));
 
+		$noGroupFieldIds = array_keys($this->fields);
+		$noGroupFieldIds = array_combine($noGroupFieldIds, $noGroupFieldIds);
+		foreach ($this->fieldGroups as $fieldGroup) {
+		    list($_, $fieldIds) = $fieldGroup;
+		    foreach ($fieldIds as $fieldId) {
+		        unset($noGroupFieldIds[$fieldId]);
+            }
+        }
+
+		$fieldGroups = $this->fieldGroups;
+		if (!empty($noGroupFieldIds)) {
+            $fieldGroups []= [ null, $noGroupFieldIds ];
+        }
+
         $model = parent::makeModel()
             ->set('name', $this->name)
             ->set('fields', $this->fields)
@@ -1074,6 +1097,7 @@ class DataGrid extends BaseWidget
             ->set('showSorting', $this->showSorting)
             ->set('sortingFields', $this->sortingFields)
             ->set('isEditor', $this->isEditor)
+            ->set('fieldGroups', $fieldGroups)
       		->set('form', $this->form);
         ;
 
