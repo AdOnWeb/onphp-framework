@@ -37,7 +37,22 @@
 			return new static($id);
 		}
 
-		/**
+        /**
+         * @param $ids
+         * @return static[]
+         */
+        protected static function createList(array $ids)
+        {
+            $list = [];
+            foreach ($ids as $id) {
+                $enum = static::create($id);
+                $list[$enum->getId()] = $enum;
+            }
+
+            return $list;
+        }
+
+        /**
 		 * @param int|Enumeration $enum
 		 * @throws WrongArgumentException
 		 * @return boolean
