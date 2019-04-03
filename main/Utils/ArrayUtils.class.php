@@ -260,11 +260,14 @@
 			return $newList;
 		}
 
-		public static function hardMerge(array $one, array $two) {
-			foreach ($two as $key=>$value) {
-				$one[$key] = $value;
-			}
-			return $one;
+		public static function hardMerge(array ...$arrays) {
+		    $result = [];
+		    foreach ($arrays as $array) {
+                foreach ($array as $key => $value) {
+                    $result[$key] = $value;
+                }
+            }
+			return $result;
 		}
 
         /**
