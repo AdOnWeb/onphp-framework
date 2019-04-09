@@ -15,6 +15,8 @@ final class RedisNoSQL extends CachePeer implements ListGenerator
     const DEFAULT_PORT = '6379';
     const DEFAULT_TIMEOUT = 1.0;
 
+    const EXPIRES_NEVER = -1;
+
     /** @var Redis */
     private $redis = null;
     private $host = null;
@@ -278,7 +280,11 @@ final class RedisNoSQL extends CachePeer implements ListGenerator
                     $method = ($action == 'add') ? 'setnx' : 'set';
                     $result = $this->redis->{$method}($key, $value);
                     if ($result !== false) {
-                        $this->redis->expire($key, $expires);
+                        if ($expires == self::EXPIRES_NEVER) {
+                            $this->redis->persist($key);
+                        } else {
+                            $this->redis->expire($key, $expires);
+                        }
                     }
                     $profiling
                         ->setInfo($action . ' ' . $key)
