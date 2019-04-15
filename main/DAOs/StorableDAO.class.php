@@ -156,7 +156,7 @@
 		/**
 		 * @return UpdateQuery
 		**/
-		private function targetizeUpdateQuery(
+		protected function targetizeUpdateQuery(
 			UpdateQuery $query,
 			Identifiable $object
 		)
