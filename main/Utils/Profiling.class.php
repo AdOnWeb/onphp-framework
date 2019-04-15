@@ -8,6 +8,7 @@
 class Profiling {
 	protected static $history = array();
 	protected static $historyEnabled = false;
+	protected static $callbacks = [];
 
 	protected $timeStart = null;
 	protected $timeEnd = null;
@@ -47,6 +48,16 @@ class Profiling {
 		self::$historyEnabled = ($bool === true);
 	}
 
+    public static function addCallback(callable $callback)
+    {
+        self::$callbacks[spl_object_id($callback)] = $callback;
+	}
+
+    public static function removeCallback(callable $callback)
+    {
+        unset(self::$callbacks[spl_object_id($callback)]);
+	}
+
 	public static function getTotalTime($tag) {
 		$time = 0;
 		foreach (self::getHistory($tag) as $profiling) {
@@ -66,6 +77,10 @@ class Profiling {
 		if (is_null($saveToHistory)) {
 			$saveToHistory = self::isHistoryEnabled();
 		}
+		
+		foreach (self::$callbacks as $callback) {
+		    $callback($this);
+        }
 
 		if ($saveToHistory) {
 			foreach ($this->getTags() as $tag) {
