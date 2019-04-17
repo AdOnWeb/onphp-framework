@@ -197,7 +197,17 @@ class PrototypeUtils
 				if (!self::hasProperty($object, $field))
 					continue;
 
-                if (self::getValue($object, $field) != $value) {
+				$oldValue = self::getValue($object, $field);
+
+				$isChanged = false;
+				if (is_string($oldValue) && is_string($value)) {
+				    // prevent "100" and "+100" being equal
+				    $isChanged = ($oldValue !== $value);
+                } else {
+				    $isChanged = ($oldValue != $value);
+                }
+
+                if ($isChanged) {
                     self::setValue($object, $field, $value);
                     $owner = self::getOwner($object, $field);
                     $modifications[get_class($owner) . '#' . $owner->getId()] = $owner;
