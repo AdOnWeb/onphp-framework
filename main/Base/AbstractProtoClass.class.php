@@ -312,7 +312,11 @@
 			} else {
 				$property = $this->getPropertyByName($path);
 				$setter = $property->getSetter();
-				$value = $prm->getValue();
+                if ($prm instanceof ListedPrimitive) {
+                    $value = $prm->getChoiceValue();
+                } else {
+                    $value = $prm->getValue();
+                }
 
 				if (
 					!$ignoreNull || ($value !== null)
