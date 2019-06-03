@@ -14,7 +14,8 @@ class StorageEngineType extends Enumeration
         WEBDAV = 10,
         FTP = 20,
         IMAGESHACK = 30,
-        LOCAL = 40;
+        LOCAL = 40,
+        MINIO = 50;
 
     protected $names = [
         self::TMP        => 'StorageEngine',
@@ -24,6 +25,7 @@ class StorageEngineType extends Enumeration
         self::FTP        => 'StorageEngineFTP',
         self::IMAGESHACK => 'StorageEngineImageShack',
         self::LOCAL      => 'StorageEngineLocal',
+        self::MINIO      => 'StorageEngineMinio',
     ];
 
     /**
