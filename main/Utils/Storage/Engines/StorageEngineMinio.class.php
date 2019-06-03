@@ -44,11 +44,6 @@ class StorageEngineMinio extends StorageEngineHTTP
         $this->hasHttpLink = true;
     }
 
-    public function get($file)
-    {
-        return parent::storeRemote($this->getHttpLink($file));
-    }
-
     public function getHttpLink($file)
     {
         return sprintf("%s/%s/%s", $this->endpoint, $this->bucket, $file);
@@ -78,6 +73,41 @@ class StorageEngineMinio extends StorageEngineHTTP
         $url = $result->get('ObjectURL');
 
         return str_replace(sprintf("%s/%s/", $this->endpoint, $this->bucket), "", $url);
+    }
+
+    protected function unlink($file)
+    {
+        try {
+            $this->s3->deleteObject([
+                'Bucket' => $this->bucket,
+                'Key'    => $file,
+            ]);
+        } catch (\Aws\S3\Exception\S3Exception $exception) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function copy($from, $to = null)
+    {
+        if (!$to) {
+            throw new InvalidArgumentException('Not implemented');
+        }
+
+        $this->s3->copyObject([
+            'Bucket'     => $this->bucket,
+            'Key'        => $to,
+            'CopySource' => $from,
+        ]);
+
+        return $to;
+    }
+
+    public function rename($from, $to)
+    {
+        $this->copy($from, $to);
+        $this->unlink($from);
     }
 
     private function getPolicy(string $policy)
