@@ -24,6 +24,11 @@ class StorageEngineMinio extends StorageEngineHTTP
     /**
      * @var string
      */
+    private $prefix;
+
+    /**
+     * @var string
+     */
     private $acl;
 
     protected function parseConfig($data)
@@ -40,19 +45,22 @@ class StorageEngineMinio extends StorageEngineHTTP
         ]);
         $this->endpoint = $data['endpoint'];
         $this->bucket = $data['bucket'];
+        $this->prefix = $data['prefix'] ?? null;
         $this->acl = $data['acl'];
         $this->hasHttpLink = true;
     }
 
     public function getHttpLink($file)
     {
-        return sprintf("%s/%s/%s", $this->endpoint, $this->bucket, $file);
+        return $this->prefix
+            ? sprintf("%s/%s/%s/%s", $this->endpoint, $this->bucket, $this->prefix, $file)
+            : sprintf("%s/%s/%s", $this->endpoint, $this->bucket, $file);
     }
 
     public function store($file, $desiredName)
     {
         try {
-            $result = $this->s3->upload($this->bucket, $desiredName, $file, $this->acl);
+            $result = $this->s3->upload($this->bucket, $this->generateKey($desiredName), $file, $this->acl);
         } catch (\Aws\S3\Exception\S3Exception $exception) {
             if ($exception->getAwsErrorCode() === self::ERROR_CODE_NO_BUCKET) {
                 $this->s3->createBucket([
@@ -64,7 +72,7 @@ class StorageEngineMinio extends StorageEngineHTTP
                     'Policy' => $this->getPolicy($this->acl),
                 ]);
 
-                $result = $this->s3->upload($this->bucket, $desiredName, $file, $this->acl);
+                $result = $this->s3->upload($this->bucket, $this->generateKey($desiredName), $file, $this->acl);
             } else {
                 throw $exception;
             }
@@ -72,7 +80,9 @@ class StorageEngineMinio extends StorageEngineHTTP
 
         $url = $result->get('ObjectURL');
 
-        return str_replace(sprintf("%s/%s/", $this->endpoint, $this->bucket), "", $url);
+        return $this->prefix
+            ? str_replace(sprintf("%s/%s/%s/", $this->endpoint, $this->bucket, $this->prefix), "", $url)
+            : str_replace(sprintf("%s/%s/", $this->endpoint, $this->bucket), "", $url);
     }
 
     protected function unlink($file)
@@ -80,7 +90,7 @@ class StorageEngineMinio extends StorageEngineHTTP
         try {
             $this->s3->deleteObject([
                 'Bucket' => $this->bucket,
-                'Key'    => $file,
+                'Key'    => $this->generateKey($file),
             ]);
         } catch (\Aws\S3\Exception\S3Exception $exception) {
             return false;
@@ -97,8 +107,8 @@ class StorageEngineMinio extends StorageEngineHTTP
 
         $this->s3->copyObject([
             'Bucket'     => $this->bucket,
-            'Key'        => $to,
-            'CopySource' => $from,
+            'Key'        => $this->generateKey($to),
+            'CopySource' => $this->generateKey($from),
         ]);
 
         return $to;
@@ -106,8 +116,8 @@ class StorageEngineMinio extends StorageEngineHTTP
 
     public function rename($from, $to)
     {
-        $this->copy($from, $to);
-        $this->unlink($from);
+        $this->copy($this->generateKey($from), $this->generateKey($to));
+        $this->unlink($this->generateKey($from));
     }
 
     private function getPolicy(string $policy)
@@ -136,5 +146,17 @@ class StorageEngineMinio extends StorageEngineHTTP
         }
 
         return json_encode($policy);
+    }
+
+    /**
+     * @param string $file
+     *
+     * @return string
+     */
+    private function generateKey(string $file): string
+    {
+        return $this->prefix
+            ? sprintf("%s/%s", $this->prefix, $file)
+            : $file;
     }
 }

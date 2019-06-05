@@ -109,6 +109,19 @@ class StorageEngineType extends Enumeration
         return new self(self::IMAGESHACK);
     }
 
-}
+    /**
+     * @return StorageEngineType
+     */
+    public static function local()
+    {
+        return new self(self::LOCAL);
+    }
 
-?>
+    /**
+     * @return StorageEngineType
+     */
+    public static function minio()
+    {
+        return new self(self::MINIO);
+    }
+}
