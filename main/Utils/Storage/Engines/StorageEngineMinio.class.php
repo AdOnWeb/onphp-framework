@@ -60,7 +60,7 @@ class StorageEngineMinio extends StorageEngineHTTP
 
     /**
      * @param string $file
-     * @param $expires максимум 7 дней по спецификации
+     * @param mixed $expires максимум 7 дней по спецификации
      *
      * @return string
      * @see S3ClientInterface::createPresignedRequest
