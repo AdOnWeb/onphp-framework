@@ -3,6 +3,7 @@
 class StorageEngineMinio extends StorageEngineHTTP
 {
     const ACL_PUBLIC_READ = 'public-read';
+    const ACL_PRIVATE = 'private';
 
     const ERROR_CODE_NO_BUCKET = 'NoSuchBucket';
 
@@ -45,7 +46,7 @@ class StorageEngineMinio extends StorageEngineHTTP
         ]);
         $this->endpoint = $data['endpoint'];
         $this->bucket = $data['bucket'];
-        $this->prefix = $data['prefix'] ?? null;
+        $this->prefix = $data['prefix'] ? trim($data['prefix'], "/") : null;
         $this->acl = $data['acl'];
         $this->hasHttpLink = true;
     }
@@ -57,27 +58,29 @@ class StorageEngineMinio extends StorageEngineHTTP
             : sprintf("%s/%s/%s", $this->endpoint, $this->bucket, $file);
     }
 
+    /**
+     * @param string $file
+     * @param $expires максимум 7 дней по спецификации
+     *
+     * @return string
+     * @see S3ClientInterface::createPresignedRequest
+     *
+     */
+    public function getSignedHttpLink(string $file, $expires)
+    {
+        $command = $this->s3->getCommand('GetObject', [
+            'Bucket' => $this->bucket,
+            'Key'    => $this->generateKey($file),
+        ]);
+
+        $presignedRequest = $this->s3->createPresignedRequest($command, $expires);
+
+        return (string)$presignedRequest->getUri();
+    }
+
     public function store($file, $desiredName)
     {
-        try {
-            $result = $this->s3->upload($this->bucket, $this->generateKey($desiredName), $file, $this->acl);
-        } catch (\Aws\S3\Exception\S3Exception $exception) {
-            if ($exception->getAwsErrorCode() === self::ERROR_CODE_NO_BUCKET) {
-                $this->s3->createBucket([
-                    'Bucket' => $this->bucket,
-                ]);
-
-                $this->s3->putBucketPolicy([
-                    'Bucket' => $this->bucket,
-                    'Policy' => $this->getPolicy($this->acl),
-                ]);
-
-                $result = $this->s3->upload($this->bucket, $this->generateKey($desiredName), $file, $this->acl);
-            } else {
-                throw $exception;
-            }
-        }
-
+        $result = $this->s3->upload($this->bucket, $this->generateKey($desiredName), $file, $this->acl);
         $url = $result->get('ObjectURL');
 
         return $this->prefix
@@ -120,34 +123,6 @@ class StorageEngineMinio extends StorageEngineHTTP
         $this->unlink($this->generateKey($from));
     }
 
-    private function getPolicy(string $policy)
-    {
-        switch ($policy) {
-            case self::ACL_PUBLIC_READ:
-                $policy = [
-                    'Version'   => "2012-10-17",
-                    'Statement' => [
-                        [
-                            'Action'    => [ "s3:GetObject" ],
-                            'Effect'    => 'Allow',
-                            'Principal' => [
-                                'AWS' => [ '*' ],
-                            ],
-                            'Resource'  => [ sprintf('arn:aws:s3:::%s/*', $this->bucket) ],
-                            'Sid'       => '',
-                        ],
-                    ],
-                ];
-
-                break;
-
-            default:
-                throw new InvalidArgumentException("Not implemented");
-        }
-
-        return json_encode($policy);
-    }
-
     /**
      * @param string $file
      *
@@ -155,6 +130,7 @@ class StorageEngineMinio extends StorageEngineHTTP
      */
     private function generateKey(string $file): string
     {
+        $file = trim($file, "/");
         return $this->prefix
             ? sprintf("%s/%s", $this->prefix, $file)
             : $file;
