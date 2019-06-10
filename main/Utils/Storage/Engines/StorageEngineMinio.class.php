@@ -80,7 +80,19 @@ class StorageEngineMinio extends StorageEngineHTTP
 
     public function store($file, $desiredName)
     {
-        $result = $this->s3->upload($this->bucket, $this->generateKey($desiredName), $file, $this->acl);
+        $stream = new \GuzzleHttp\Psr7\LazyOpenStream($file, 'r+');
+
+        $options = [];
+
+        $mime = mime_content_type($file);
+        if ($mime) {
+            $options['params'] = [
+                'ContentType' => $mime,
+            ];
+        }
+
+        $result = $this->s3->upload($this->bucket, $this->generateKey($desiredName), $stream, $this->acl, $options);
+        $stream->close();
         $url = $result->get('ObjectURL');
 
         return $this->prefix
