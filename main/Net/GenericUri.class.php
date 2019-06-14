@@ -330,7 +330,7 @@
 				return $pairs;
 			};
 
-			$this->setQuery( implode('&', $build($array)) );
+			$this->setQuery( implode('&', $build($array)) ?: null );
 
 			return $this;
 		}
