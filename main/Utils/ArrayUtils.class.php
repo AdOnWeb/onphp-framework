@@ -197,6 +197,28 @@
 			return $result;
 		}
 
+        /**
+         * @param callable $conflictResolver ($currentValue, $newValue) => $mergedValue
+         * @param array ...$arrays
+         * @return mixed
+         */
+        public static function mergeResolve(callable $conflictResolver, array ...$arrays)
+        {
+            $merged = array_shift($arrays);
+
+            foreach ($arrays as $array) {
+                foreach ($array as $key => $value) {
+                    if (!array_key_exists($key, $merged)) {
+                        $merged[$key] = $value;
+                    } else {
+                        $merged[$key] = $conflictResolver($merged[$key], $value);
+                    }
+                }
+            }
+
+            return $merged;
+		}
+
 		// TODO: drop Reflection
 		public static function mergeSortedLists(
 			$list1,
