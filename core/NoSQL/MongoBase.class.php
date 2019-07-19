@@ -733,10 +733,17 @@ class MongoBase extends NoSQL
         }
     }
 
-    public function createIndex($table, array $keys, $unique = false)
+    public function createIndex($table, array $keys, $unique = false, $moreOpts = [])
     {
-        return $this->db->selectCollection($table)
-            ->createIndex($keys, [ 'background' => true, 'unique' => $unique ]);
+        $opts = array_merge(
+            [
+                'background' => true,
+                'unique'     => $unique
+            ],
+            $moreOpts
+        );
+
+        return $this->db->selectCollection($table)->createIndex($keys, $opts);
     }
 
     /**
