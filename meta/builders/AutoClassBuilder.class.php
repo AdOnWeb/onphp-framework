@@ -35,7 +35,7 @@
 				&& $class->hasProperty('id')
 			) {
 				$out .= " extends NoSqlObject";
-			} elseif (!$class->getPattern() instanceof ValueObjectPattern) {
+			} elseif (!$class->getPattern() instanceof ValueObjectPattern && !$class->getPattern() instanceof AbstractValueObjectPattern) {
 				$out .= " extends IdentifiableObject";
 			}
 
