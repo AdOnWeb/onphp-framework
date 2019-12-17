@@ -53,7 +53,7 @@
         }
 
         /**
-		 * @param int|Enumeration $enum
+		 * @param int|static $enum
 		 * @throws WrongArgumentException
 		 * @return boolean
 		 */
@@ -67,6 +67,26 @@
 				throw new WrongArgumentException('cant match this enum with: ' . var_export($enum, true));
 			}
 			return $id == $this->getId();
+		}
+
+        /**
+         * @param int|static $enum
+         * @return bool
+         * @throws WrongArgumentException
+         */
+        public function isNot($enum)
+        {
+            return !$this->is($enum);
+		}
+
+        /**
+         * @param int[]|static[] $enums
+         * @return bool
+         * @throws WrongArgumentException
+         */
+        public function notIn(array $enums)
+        {
+            return !$this->in($enums);
 		}
 
 		/**
