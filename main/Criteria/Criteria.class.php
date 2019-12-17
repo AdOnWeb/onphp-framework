@@ -753,8 +753,34 @@
 		 * @return $this
 		 */
 		public function addCustomJoin(SQLBaseJoin $customJoin) {
-			$this->customJoins []= $customJoin;
+			$this->customJoins[$customJoin->getAlias() ?: $customJoin->getTable()] = $customJoin;
 			return $this;
+		}
+
+        /**
+         * @param $alias
+         * @return bool
+         */
+        public function hasCustomJoin($alias)
+        {
+            return isset($this->customJoins[$alias]);
+		}
+
+        /**
+         * @return SQLBaseJoin[]
+         */
+        public function getCustomJoins()
+        {
+            return $this->customJoins;
+		}
+
+        /**
+         * @param $alias
+         * @return SQLBaseJoin|null
+         */
+        public function getCustomJoin($alias)
+        {
+            return $this->customJoins[$alias] ?? null;
 		}
 
 		/**
