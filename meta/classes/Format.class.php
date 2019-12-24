@@ -39,6 +39,8 @@
 					--$indent;
 				elseif ($string == "),\n")
 					--$indent;
+				elseif ($string == "},\n")
+					--$indent;
 				elseif ($string == "?>\n")
 					$indent = 0;
 				elseif ($string[0] == '?')

@@ -1,7 +1,8 @@
 #!/usr/bin/php
 <?php
+define('ONPHP_BUILDER', true);
 
-	function help()
+function help()
 	{
 ?>
 Usage: build.php [options] [project-configuration-file.inc.php] [metaconfiguration.xml]

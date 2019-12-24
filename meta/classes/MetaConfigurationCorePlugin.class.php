@@ -307,9 +307,9 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
                     || $class->getPattern() instanceof RegistryClassPattern
                 ) {
                     $object = new $name(call_user_func(array($name, 'getAnyId')));
-
                     Assert::isTrue(
-                        unserialize(serialize($object)) == $object
+                        unserialize(serialize($object)) == $object,
+                        'mismatch after unserilize(serialize(..))'
                     );
 
                     $out->info(', ');
@@ -684,12 +684,17 @@ class MetaConfigurationCorePlugin implements MetaConfigurationPluginInterface
             $migrationId = date('YmdHis') . '_' . substr(md5(implode($commands)), 0, 8);
 
             BasePattern::dumpFile(
-                PATH_MIGRATIONS . "{$migrationId}_{$sourceLinkName}.php",
+                self::makeMigrationsFileName($sourceLinkName, $migrationId),
                 MigrationBuilder::buildMigration($migrationId, $sourceLinkName, $commands, $diffsDown[$sourceLinkName])
             );
         }
 
         return $this;
+    }
+
+    public static function makeMigrationsFileName($sourceLinkName, $migrationId)
+    {
+        return PATH_MIGRATIONS . "{$migrationId}_{$sourceLinkName}.php";
     }
 
     public function buildContainers()
