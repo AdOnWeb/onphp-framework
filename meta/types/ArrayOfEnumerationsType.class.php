@@ -28,6 +28,36 @@ class ArrayOfEnumerationsType extends ArrayOfIntegersType {
 		MetaClassProperty $holder = null
 	)
 	{
+        if ($holder)
+            $name = $holder->getName().'->get'.ucfirst($property->getName()).'()';
+        else
+            $name = $property->getName();
+
+        $methodName = 'get'.ucfirst($property->getName());
+
+        $code = <<<EOT
+
+/**
+ * @return {$this->getHint()}
+ */
+public function {$methodName}()
+{
+	return \$this->{$name};
+}
+
+EOT;
+
+		$code .= $this->toListGetter($class, $property, $holder);
+
+		return $code;
+	}
+
+	public function toListGetter(
+		MetaClass $class,
+		MetaClassProperty $property,
+		MetaClassProperty $holder = null
+	)
+	{
 		if ($holder)
 			$name = $holder->getName().'->get'.ucfirst($property->getName()).'()';
 		else
@@ -35,20 +65,68 @@ class ArrayOfEnumerationsType extends ArrayOfIntegersType {
 
 		$methodName = 'get'.ucfirst($property->getName()).'List';
 
-		return parent::toGetter($class, $property, $holder) . <<<EOT
+		return <<<EOT
 
 /**
  * @return {$this->enumerationClass->getName()}[]
  */
 public function {$methodName}()
 {
-	return array_map(array('{$this->enumerationClass->getName()}', 'create'), \$this->{$name});
+	return {$this->enumerationClass->getName()}::createList(\$this->{$name});
 }
 
 EOT;
 	}
 
-	public function toSetter(
+    public function toSetter(
+        MetaClass $class,
+        MetaClassProperty $property,
+        MetaClassProperty $holder = null
+    )
+    {
+        $name = $property->getName();
+        $methodName = 'set'.ucfirst($name);
+
+        $nullArg = $property->isRequired() ? '' : ' = null';
+        $nullParam = $property->isRequired() ? '' : '|null';
+
+        if ($holder) {
+            Assert::isUnreachable();
+        } else {
+            $code = <<<EOT
+
+/**
+ * @param {$this->getHint()}{$nullParam} \${$name}
+ * @return \$this
+ */
+public function {$methodName}(array \${$name}{$nullArg})
+{
+    \${$name} = array_map(
+        function (\$value) {
+            switch (true) {
+                case \$value instanceof {$this->enumerationClass->getName()}: return \$value->getId();
+                case Assert::checkInteger(\$value): return intval(\$value);
+                case is_scalar(\$value): return \$value;
+                default: throw new WrongArgumentException(Assert::dumpArgument(\$value));
+            }
+        }, 
+        \${$name}
+    );
+	\$this->{$name} = \${$name};
+
+	return \$this;
+}
+
+EOT;
+            $code .= $this->toListSetter($class, $property, $holder);
+
+            return $code;
+        }
+
+        Assert::isUnreachable();
+    }
+
+    public function toListSetter(
 		MetaClass $class,
 		MetaClassProperty $property,
 		MetaClassProperty $holder = null
@@ -62,7 +140,7 @@ EOT;
 		if ($holder) {
 			Assert::isUnreachable();
 		} else {
-			return parent::toSetter($class, $property, $holder) . <<<EOT
+			return <<<EOT
 
 /**
  * @param \${$name} {$this->enumerationClass->getName()}[]
@@ -70,7 +148,16 @@ EOT;
  */
 public function {$methodName}(array \${$name}{$default})
 {
-	\$this->{$name} = ArrayUtils::getIdsArray(\${$name});
+    \${$name} = array_map(
+        function (\$value) {
+            if (\$value instanceof {$this->enumerationClass->getName()}) {
+                return \$value->getId();
+            } 
+            throw new WrongArgumentException(Assert::dumpArgument(\$value));
+        }, 
+        \${$name}
+    );
+	\$this->{$name} = \${$name};
 
 	return \$this;
 }

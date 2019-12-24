@@ -15,4 +15,10 @@ class ArrayOfIntegersType extends ArrayType {
 		return 'DataType::create(DataType::SET_OF_INTEGERS)';
 	}
 
+    public function getHint()
+    {
+        return 'int[]';
+    }
+
+
 }

@@ -1013,10 +1013,15 @@ class DataGrid extends BaseWidget
                 }
 
                 if ($this->form instanceof Form && $this->form->exists($fieldId)) {
-                    if ($this->form->get($fieldId)->isImported()) {
-                        $field = $this->form->get($fieldId)->getValue();
+                    $primitive = $this->form->get($fieldId);
+                    if ($primitive->isImported()) {
+                        if ($primitive instanceof ListedPrimitive) {
+                            $field = $primitive->getChoiceValue();
+                        } else {
+                            $field = $primitive->getValue();
+                        }
                     } else if ($this->form->hasError($fieldId)) {
-                        $field = $this->form->get($fieldId)->getRawValue();
+                        $field = $primitive->getRawValue();
                     }
                 }
 

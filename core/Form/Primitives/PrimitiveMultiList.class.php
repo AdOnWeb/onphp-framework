@@ -66,10 +66,11 @@
 				$values = array();
 				
 				foreach ($scope[$this->name] as $value) {
-					if (isset($this->list[$value])) {
-						$values[] = $value;
-						$this->selected[$value] = $this->list[$value];
+					if (!array_key_exists($value, $this->list)) {
+                        return false;
 					}
+                    $values[] = $value;
+                    $this->selected[$value] = $this->list[$value];
 				}
 				
 				if (count($values)) {
