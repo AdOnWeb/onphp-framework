@@ -128,6 +128,11 @@
 			);
 		}
 
+        public function getLinkNames()
+        {
+            return array_keys($this->pool);
+		}
+
 		/**
 		 * @return DBPool
 		**/
