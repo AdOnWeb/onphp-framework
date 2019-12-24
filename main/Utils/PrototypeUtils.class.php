@@ -191,7 +191,11 @@ class PrototypeUtils
         $modifications = array();
         foreach ($form->getPrimitiveList() as $primitive) {
             try {
-                $value = $primitive->getValue();
+                if ($primitive instanceof ListedPrimitive) {
+                    $value = $primitive->getChoiceValue();
+                } else {
+                    $value = $primitive->getValue();
+                }
                 $field = $primitive->getName();
 
 				if (!self::hasProperty($object, $field))
