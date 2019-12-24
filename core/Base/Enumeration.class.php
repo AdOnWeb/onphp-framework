@@ -41,7 +41,7 @@
          * @param $ids
          * @return static[]
          */
-        protected static function createList(array $ids)
+        public static function createList(array $ids)
         {
             $list = [];
             foreach ($ids as $id) {
