@@ -23,6 +23,10 @@
 		
 		public static function redirectRaw($url)
 		{
+		    if ($url instanceof Stringable) {
+		        $url = $url->toString();
+            }
+
 			header("Location: {$url}");
 
 			self::$headerSent = true;
