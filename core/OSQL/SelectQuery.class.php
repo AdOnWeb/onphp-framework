@@ -256,7 +256,11 @@
 		**/
 		public function having(LogicalObject $exp)
 		{
-			$this->having = $exp;
+		    if (!$this->having) {
+		        $this->having = new LogicalChain();
+            }
+
+			$this->having->expAnd($exp);
 			
 			return $this;
 		}
