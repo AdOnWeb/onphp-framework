@@ -7,19 +7,29 @@
 
 class ArrayOfEnumerationsType extends ArrayOfIntegersType {
 
-	/** @var MetaClass */
-	protected $enumerationClass;
+	protected $className;
 
 	function __construct($type, array $parameters) {
 		Assert::isNotEmptyArray($parameters, 'enumeration class name is not provided');
 		list($enumerationClassName) = $parameters;
+        $this->className = $enumerationClassName;
+	}
 
-		$this->enumerationClass = MetaConfiguration::me()->getCorePlugin()->getClassByName($enumerationClassName);
+    public function getClass()
+    {
+        $class = MetaConfiguration::me()->getCorePlugin()->getClassByName($this->getClassName());
 
-		Assert::isTrue(
-			$this->enumerationClass->getPattern() instanceof EnumerationClassPattern,
-			'only enumeration classes can be provided for ArrayOfEnumerations type'
-		);
+        Assert::isTrue(
+            $class->getPattern() instanceof EnumerationClassPattern,
+            'only enumeration classes can be provided for ArrayOfEnumerations type'
+        );
+
+        return $class;
+	}
+
+    public function getClassName()
+    {
+        return $this->className;
 	}
 
 	public function toGetter(
@@ -68,11 +78,11 @@ EOT;
 		return <<<EOT
 
 /**
- * @return {$this->enumerationClass->getName()}[]
+ * @return {$this->getClass()->getName()}[]
  */
 public function {$methodName}()
 {
-	return {$this->enumerationClass->getName()}::createList(\$this->{$name});
+	return {$this->getClass()->getName()}::createList(\$this->{$name});
 }
 
 EOT;
@@ -104,7 +114,7 @@ public function {$methodName}(array \${$name}{$nullArg})
     \${$name} = array_map(
         function (\$value) {
             switch (true) {
-                case \$value instanceof {$this->enumerationClass->getName()}: return \$value->getId();
+                case \$value instanceof {$this->getClass()->getName()}: return \$value->getId();
                 case Assert::checkInteger(\$value): return intval(\$value);
                 case is_scalar(\$value): return \$value;
                 default: throw new WrongArgumentException(Assert::dumpArgument(\$value));
@@ -143,14 +153,14 @@ EOT;
 			return <<<EOT
 
 /**
- * @param \${$name} {$this->enumerationClass->getName()}[]
+ * @param \${$name} {$this->getClass()->getName()}[]
  * @return \$this
  */
 public function {$methodName}(array \${$name}{$default})
 {
     \${$name} = array_map(
         function (\$value) {
-            if (\$value instanceof {$this->enumerationClass->getName()}) {
+            if (\$value instanceof {$this->getClass()->getName()}) {
                 return \$value->getId();
             } 
             throw new WrongArgumentException(Assert::dumpArgument(\$value));
