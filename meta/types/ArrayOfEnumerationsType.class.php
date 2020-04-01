@@ -82,7 +82,10 @@ EOT;
  */
 public function {$methodName}()
 {
-	return {$this->getClass()->getName()}::createList(\$this->{$name});
+    return array_map(
+        function (\$id) { return {$this->getClass()->getName()}::create(\$id); },
+        \$this->{$name}
+    );
 }
 
 EOT;
