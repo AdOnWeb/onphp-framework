@@ -153,16 +153,17 @@ class StorageEngine
 
         $httpTimeout = '';
         try {
-            if ($this->httpTimeout && strpos($link, 'http') === 0) {
-                $httpTimeout = floatval($this->httpTimeout);
-                $context = stream_context_create([
-                    'http' => [
-                        'timeout'    => $httpTimeout,
-                        'user_agent' => 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0',
-                    ],
-                ]);
+            $context = [];
+            if (strpos($link, 'http') === 0) {
+                $context['http'] = [];
+                $context['http']['user_agent'] = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0';
+                if ($this->httpTimeout) {
+                    $context['http']['timeout'] = floatval($this->httpTimeout);
+                }
+            }
 
-                $source = fopen($link, 'r', false, $context);
+            if (!empty($context)) {
+                $source = fopen($link, 'r', false, stream_context_create($context));
             } else {
                 $source = fopen($link, 'r');
             }
