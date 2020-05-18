@@ -54,6 +54,11 @@ final class MigrationBuilder extends BaseBuilder
         return $out;
     }
 
+    /**
+     * @param DBSchema[] $schemes
+     * @return array
+     * @throws MissingElementException
+     */
     public static function getDifferenceUp($schemes)
     {
         $diffs = [];

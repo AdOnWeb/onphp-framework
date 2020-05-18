@@ -49,6 +49,7 @@
 			|AbstractClass
 			|AbstractValueObject
 			|StraightMapping
+			|MaterializedView
 			|EnumerationClass
 			|EnumClass
 			|RegistryClass

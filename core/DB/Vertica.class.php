@@ -85,19 +85,27 @@ class Vertica extends PgSQL {
 			if (empty($types[$type]))
 				continue;
 
-			$dataType =
-				DataType::create($types[$type])
-					->setNull($info['is_nullable'] === 't');
+			try {
+                $dataType =
+                    DataType::create($types[$type])
+                        ->setNull($info['is_nullable'] === 't');
 
-			if ($dataType->hasSize() && $info['character_maximum_length']) {
-				$dataType->setSize($info['character_maximum_length']);
-			}
-			if ($dataType->hasSize() && $info['numeric_precision']) {
-				$dataType->setSize($info['numeric_precision']);
-			}
-			if ($dataType->hasPrecision() && $info['numeric_scale']) {
-				$dataType->setPrecision($info['numeric_scale']);
-			}
+                if ($dataType->hasSize() && $info['character_maximum_length']) {
+                    $dataType->setSize($info['character_maximum_length']);
+                }
+                if ($dataType->hasSize() && $info['numeric_precision']) {
+                    $dataType->setSize($info['numeric_precision']);
+                }
+                if ($dataType->hasPrecision() && $info['numeric_scale']) {
+                    $dataType->setPrecision($info['numeric_scale']);
+                }
+            } catch (\Throwable $e) {
+			    throw new DatabaseException(
+                    "failed to create DataType for '{$table->getName()}.$name' from info: \n"
+                    . json_encode($info, JSON_PRETTY_PRINT),
+                    0, $e
+                );
+            }
 
 			$table->addColumn(DBColumn::create(
 				$dataType, $info['column_name']
