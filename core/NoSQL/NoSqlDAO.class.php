@@ -381,13 +381,17 @@ abstract class NoSqlDAO extends StorableDAO {
 
 		$this->checkObjectType($object);
 
-		try {
-			$old = $this->getById($object->getId());
-		} catch( Exception $e ) {
-			return $this->save($object);
-		}
 
-		return $this->unite($object, $old);
+        $old = Cache::worker($this)->getCachedById($object->getId());
+
+        if (!$old) { // unlikely
+            if ($cacheOnly)
+                return $this->save($object);
+            else
+                $old = Cache::worker($this)->getById($object->getId());
+        }
+
+        return $this->unite($object, $old);
 	}
 
 	public function unite( Identifiable $object, Identifiable $old ) {
