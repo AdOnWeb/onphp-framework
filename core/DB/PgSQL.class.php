@@ -215,51 +215,53 @@
 		 * @throws ObjectNotFoundException
 		 * @return DBTable
 		**/
-		public function getTableInfo($table)
+		public function getTableInfo($tableName)
 		{
 			static $types = array(
-				'time'			=> DataType::TIME,
-				'date'			=> DataType::DATE,
-				'timestamp'		=> DataType::TIMESTAMP,
+                'time' => DataType::TIME,
+                'date' => DataType::DATE,
 
-				'timestamptz'					=> DataType::TIMESTAMPTZ,
-				'timestamp with time zone'   	=> DataType::TIMESTAMPTZ,
+                'timestamp'                   => DataType::TIMESTAMP,
+                'timestamp without time zone' => DataType::TIMESTAMP,
+                'timestamptz'                 => DataType::TIMESTAMPTZ,
+                'timestamp with time zone'    => DataType::TIMESTAMPTZ,
 
+                'boolean'  => DataType::BOOLEAN,
 
-				'bool'			=> DataType::BOOLEAN,
+                'smallint' => DataType::SMALLINT,
+                'int'      => DataType::INTEGER,
+                'integer'  => DataType::INTEGER,
+                'bigint'   => DataType::BIGINT,
+                'numeric'  => DataType::NUMERIC,
 
-				'int2'			=> DataType::SMALLINT,
-				'int4'			=> DataType::INTEGER,
-				'int8'			=> DataType::BIGINT,
-				'numeric'		=> DataType::NUMERIC,
+                'float'            => DataType::REAL,
+                'double precision' => DataType::DOUBLE,
 
-				'float4'		=> DataType::REAL,
-				'float8'		=> DataType::DOUBLE,
+                'character varying' => DataType::VARCHAR,
+                'character'         => DataType::CHAR,
+                'text'              => DataType::TEXT,
 
-				'varchar'		=> DataType::VARCHAR,
-				'bpchar'		=> DataType::CHAR,
-				'text'			=> DataType::TEXT,
+                'binary' => DataType::BINARY,
 
-				'bytea'			=> DataType::BINARY,
+                'ip' => DataType::IP,
 
-				'ip4'			=> DataType::IP,
-				'inet'			=> DataType::IP,
+                'ip_range' => DataType::IP_RANGE,
 
-				'ip4r'			=> DataType::IP_RANGE,
+                'cidr' => DataType::CIDR,
 
-				'cidr'			=> DataType::CIDR,
+                'uuid'   => DataType::UUID,
+                'hstore' => DataType::HSTORE,
 
-				'uuid'			=> DataType::UUID,
-				'hstore'    	=> DataType::HSTORE,
+                'json'  => DataType::JSON,
+                'jsonb' => DataType::JSONB,
 
-				'json'    		=> DataType::JSON,
-				'jsonb'    		=> DataType::JSONB,
-				'_jsonb'    		=> DataType::JSONB,
-
-				'_varchar'    	=> DataType::SET_OF_STRINGS,
-				'_int4'    		=> DataType::SET_OF_INTEGERS,
-				'_int8'    		=> DataType::SET_OF_INTEGERS,
-				'_float8'    	=> DataType::SET_OF_FLOATS,
+                'character varying[]' => DataType::SET_OF_STRINGS,
+                'character[]'         => DataType::SET_OF_STRINGS,
+                'smallint[]'          => DataType::SET_OF_INTEGERS,
+                'integer[]'           => DataType::SET_OF_INTEGERS,
+                'bigint[]'            => DataType::SET_OF_INTEGERS,
+                'float[]'             => DataType::SET_OF_FLOATS,
+                'double precision[]'  => DataType::SET_OF_FLOATS,
 
 				// unhandled types, not ours anyway
 				'tsvector'		=> null,
@@ -267,81 +269,85 @@
 				'ltree'			=> null,
 			);
 
-			try {
-				$res = pg_meta_data($this->link, $table);
-			} catch (BaseException $e) {
+            $columnsInfo = $this->querySet(
+                OSQL::select()
+                    ->from('pg_attribute')
+                    ->get('attname', 'name')
+                    ->get('attnotnull', 'not_null')
+                    ->get('atthasdef', 'has_default')
+                    ->get(SQLFunction::create('pg_catalog.format_type', 'atttypid', 'atttypmod'), 'type')
+                    ->leftJoin(
+                        'pg_class',
+                        Expression::eq(
+                            DBField::create('oid', 'pg_class'),
+                            DBField::create('attrelid', 'pg_attribute')
+                        )
+                    )
+                    ->leftJoin(
+                        'pg_namespace',
+                        Expression::eq(
+                            DBField::create('oid', 'pg_namespace'),
+                            DBField::create('relnamespace', 'pg_class')
+                        )
+                    )
+                ->where(Expression::gt(DBField::create('attnum'), 0))
+                ->andWhere(Expression::not(DBField::create('attisdropped'), 0))
+                ->andWhere(Expression::eq(DBField::create('relname'), $tableName))
+                ->andWhere(Expression::eq('nspname', 'public'))
+                ->orderBy(DBField::create('attnum'))
+            );
+
+            if (!$columnsInfo) {
 				throw new ObjectNotFoundException(
-					"unknown table '{$table}'"
+					"unknown table '{$tableName}'"
 				);
 			}
 
-			$table = new DBTable($table);
+			$table = new DBTable($tableName);
 
-			foreach ($res as $name => $info) {
+			foreach ($columnsInfo as $info) {
+                $name = $info['name'];
+                $notNull = $info['not_null'] == 't';
+                $hasDefault = $info['has_default'] == 't';
+                $typeName = $info['type'];
+                $size = null;
+                $precision = null;
+                $typeName = preg_replace_callback(
+                    '/\((\d+)(?:,(\d+))?\)/',
+                    function ($match) use (&$size, &$precision) {
+                        $size = $match[1] ?? null;
+                        $precision = $match[2] ?? null;
+                        return '';
+                    },
+                    $typeName
+                );
 
-				Assert::isTrue(
-					array_key_exists($info['type'], $types),
-
-					'unknown type "'
-					.$types[$info['type']]
-					.'" found in column "'.$name.'"'
+				Assert::isIndexExists(
+				    $types, $typeName,
+					'unknown type "' . $typeName .'" found in column "'. $tableName . '.' . $name . '"'
 				);
 
-				if (empty($types[$info['type']]))
-					continue;
+                if ($types[$typeName] === null) {
+                    continue;
+                }
 
-				$type = DataType::create($types[$info['type']])
-					->setNull(!$info['not null']);
+                try {
+                    $type = DataType::create($types[$typeName])
+                        ->setNull(!$notNull);
 
-				if ($type->hasSize() || $type->hasPrecision()) {
-					$sizeInfo = $this->queryRow(
-						OSQL::select()
-							->get('character_maximum_length')
-							->get('numeric_precision')
-							->get('numeric_scale')
-							->from('information_schema.columns')
-							->where(Expression::andBlock(
-								Expression::eq('table_schema', 'public'),
-								Expression::eq('table_catalog', SQLFunction::create('current_database')),
-								Expression::eq('table_name', $table->getName()),
-								Expression::eq('column_name', $name)
-							))
-					);
-
-					if ($type->is(DataType::VARCHAR) || $type->is(DataType::CHAR)) {
-						if ($sizeInfo['character_maximum_length']) {
-							$type->setSize($sizeInfo['character_maximum_length']);
-						}
-					}
-					if ($type->is(DataType::NUMERIC)) {
-						$type->setSize($sizeInfo['numeric_precision']);
-						$type->setPrecision($sizeInfo['numeric_scale']);
-					}
-					if ($type->isArrayColumn()) {
-                        $arrayItemSizeInfo = $this->queryRow(
-                            OSQL::select()
-                                ->get('atttypid')
-                                ->get('atttypmod')
-                                ->from('pg_catalog.pg_attribute')
-                                ->where(Expression::gt('attnum', 0))
-                                ->andWhere(Expression::not('attisdropped'))
-                                ->andWhere(Expression::eq(
-                                    'attrelid',
-                                    OSQL::select()
-                                        ->get('oid')
-                                        ->from('pg_catalog.pg_class')
-                                        ->where(Expression::eq('relname', DBValue::create($table->getName())))
-                                ))
-                                ->andWhere(Expression::eq('attname', DBValue::create($name)))
-                        );
-
-                        $arrayItemSize = intval($arrayItemSizeInfo['atttypmod']);
-                        if ($arrayItemSize != -1) {
-                            // https://stackoverflow.com/questions/52376045/why-does-atttypmod-differ-from-character-maximum-length
-                            $type->setSize($arrayItemSize - 4);
-                        }
+                    if ($type->hasSize() && $size) {
+                        $type->setSize($size);
                     }
-				}
+                    if ($type->hasPrecision() && $precision) {
+                        $type->setPrecision($precision);
+                    }
+                } catch (\Throwable $e) {
+                    throw new DatabaseException(
+                        "failed to create DataType for '{$table->getName()}.$name' from info: \n"
+                        . json_encode($info, JSON_PRETTY_PRINT),
+                        0, $e
+                    );
+                }
 
 				$column = new DBColumn($type, $name);
 

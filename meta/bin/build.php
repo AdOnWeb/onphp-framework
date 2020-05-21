@@ -343,11 +343,13 @@ Possible options:
             }
 
 		} catch (Exception $e) {
-			$out
-                ->newLine()
-                ->errorLine($e->getMessage(), true)
-                ->newLine()
-                ->logLine($e->getTraceAsString());
+		    do {
+                $out
+                    ->newLine()
+                    ->errorLine($e->getMessage(), true)
+                    ->newLine()
+                    ->logLine($e->getTraceAsString());
+            } while ($e = $e->getPrevious());
 		}
 	} else {
 		$out->getOutput()->resetAll()->newLine();

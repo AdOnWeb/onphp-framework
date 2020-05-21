@@ -103,6 +103,7 @@
                                 <xs:enumeration value="AbstractClass" />
                                 <xs:enumeration value="AbstractValueObject" />
                                 <xs:enumeration value="StraightMapping" />
+                                <xs:enumeration value="MaterializedView" />
                                 <xs:enumeration value="EnumerationClass" />
                                 <xs:enumeration value="EnumClass" />
                                 <xs:enumeration value="RegistryClass" />

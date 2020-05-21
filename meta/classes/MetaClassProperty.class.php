@@ -22,6 +22,7 @@
 		/** @var BasePropertyType|ObjectType|null  */
 		private $type		= null;
 		private $size		= null;
+		private $precision	= null;
 
 		private $required	= false;
 		private $identifier	= false;
@@ -126,13 +127,10 @@
 		**/
 		public function setSize($size)
 		{
-			if ($this->type instanceof NumericType) {
-				if (strpos($size, ',') !== false) {
-					list($size, $precision) = explode(',', $size, 2);
-
-					$this->type->setPrecision($precision);
-				}
-			}
+		    $precision = null;
+            if (strpos($size, ',') !== false) {
+                list($size, $precision) = explode(',', $size, 2);
+            }
 
 			Assert::isInteger(
 				$size,
@@ -141,6 +139,13 @@
 
 			if ($this->type->isMeasurable()) {
 				$this->size = $size;
+				if ($precision) {
+                    Assert::isInteger(
+                        $size,
+                        'only integers allowed in precision parameter'
+                    );
+                    $this->precision = $precision;
+                }
 			} else
 				throw new WrongArgumentException(
 					"size not allowed for '"
@@ -549,10 +554,10 @@ setSize({$this->size})
 EOT;
 			}
 
-			if ($this->type instanceof NumericType) {
+			if ($this->precision) {
 				$column .= <<<EOT
 ->
-setPrecision({$this->type->getPrecision()})
+setPrecision({$this->precision})
 EOT;
 			}
 

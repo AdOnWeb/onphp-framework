@@ -55,14 +55,12 @@
 
 		const HAVE_SIZE			= 0x000100;
 		const HAVE_PRECISION	= 0x000200;
-		const HAVE_SCALE		= 0x000400;
 		const HAVE_TIMEZONE		= 0x000800;
 		const CAN_BE_UNSIGNED	= 0x001000;
 		const ARRAY_COLUMN		= 0x010000;
 
 		private $size		= null;
 		private $precision	= null;
-		private $scale		= null;
 
 		private $null		= true;
 		private $timezone	= false;
@@ -127,7 +125,7 @@
 		**/
 		public function setSize($size)
 		{
-			Assert::isInteger($size);
+			Assert::isInteger($size, 'wrong size or not set');
 			Assert::isTrue($this->hasSize() || $this->id == self::HSTORE);
 
 			$this->size = $size;
@@ -151,7 +149,7 @@
 		**/
 		public function setPrecision($precision)
 		{
-			Assert::isInteger($precision);
+			Assert::isInteger($precision, 'wrong precision or not set');
 			Assert::isTrue($this->hasPrecision());
 
 			$this->precision = $precision;
@@ -162,25 +160,6 @@
 		public function hasPrecision()
 		{
 			return (bool) ($this->id & self::HAVE_PRECISION);
-		}
-
-		public function getScale()
-		{
-			return $this->scale;
-		}
-
-		/**
-		 * @throws WrongArgumentException
-		 * @return DataType
-		**/
-		public function setScale($scale)
-		{
-			Assert::isInteger($scale);
-			Assert::isTrue(($this->id & self::HAVE_SCALE) > 0);
-
-			$this->scale = $scale;
-
-			return $this;
 		}
 
 		/**
@@ -247,30 +226,20 @@
 				$out .= ' UNSIGNED';
 			}
 
-			if ($this->id & self::HAVE_PRECISION) {
-				if ($this->precision) {
+			if ($this->hasPrecision() && $this->precision) {
+                switch ($this->id) {
+                    case self::TIME:
+                    case self::TIMESTAMP:
+                        $out .= "({$this->precision})";
+                        break;
 
-					switch ($this->id) {
+                    case self::NUMERIC:
+                        $out .= "({$this->size}, {$this->precision})";
+                        break;
 
-						case self::TIME:
-						case self::TIMESTAMP:
-
-							$out .= "({$this->precision})";
-							break;
-
-						case self::NUMERIC:
-
-							$out .=
-								$this->precision
-									? "({$this->size}, {$this->precision})"
-									: "({$this->size})";
-							break;
-
-						default:
-
-							throw new WrongStateException();
-					}
-				}
+                    default:
+                        throw new WrongStateException();
+                }
 			} elseif ($this->hasSize()) {
 				if (!$this->size)
 					throw new WrongStateException(
