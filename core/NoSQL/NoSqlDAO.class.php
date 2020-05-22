@@ -430,6 +430,68 @@ abstract class NoSqlDAO extends StorableDAO {
 
 		return $object;
 	}
+
+    /**
+     * @param NoSqlObject $object
+     * @param array       $dbFieldNames
+     * @return Identifiable
+     * @throws NoSQLException
+     * @throws WrongArgumentException
+     */
+    public function savePartial(
+        Identifiable $object, array $propertyNames
+    )
+    {
+        Assert::isNotNull($object->getId());
+
+        $columnNames = array_map(
+            function ($propertyName) {
+                return $this->getProtoClass()->getPropertyByName($propertyName)->getColumnName();
+            },
+            $propertyNames
+        );
+
+        if (empty($columnNames)) {
+            return $object;
+        }
+
+        $this->checkNoSqlObject($object);
+
+        $data = $object->toArray();
+        $updated = [];
+        foreach ($columnNames as $columnName) {
+            if (!array_key_exists($columnName, $data)) {
+                throw new DatabaseException("field '$columnName' is not found in " . get_class($object));
+            }
+            $updated[$columnName] = $data[$columnName];
+        }
+
+        $this->runTrigger($object, 'onBeforeSave');
+
+        $db = NoSqlPool::getByDao($this);
+        $row = $db
+            ->update(
+                $this->getTable(),
+                [ '$set'  => $updated ],
+                [
+                    'where' => MongoBase::makeIdQuery($object->getId()),
+                    'return_result' => true,
+                ]
+            );
+
+        if (($row['updatedExisting'] ?? null) !== true) {
+            throw new DatabaseException('partial update did not work out');
+        }
+
+        $this->runTrigger($object, 'onAfterSave');
+
+        $this->uncacheById($object->getId());
+
+        //$object->setId($row['id']);
+
+        return $object;
+    }
+
 //@}
 
 
@@ -498,7 +560,13 @@ abstract class NoSqlDAO extends StorableDAO {
 	 * @throws NoSQLException
 	 */
 	protected function checkNoSqlObject(Prototyped $object) {
-		$form = Form::create();
+        Assert::isSame(
+            get_class($object),
+            $this->getObjectName(),
+            'strange object given, i can not store it'
+        );
+
+        $form = Form::create();
 		foreach ($object->proto()->getPropertyList() as $property) {
 			/** @var $property LightMetaProperty */
 			if ($property->isIdentifier() || $property->getRelationId() > MetaRelation::ONE_TO_ONE) {

@@ -323,6 +323,13 @@ class MongoBase extends NoSQL
             $where = static::makeIdQuery($id);
         }
 
+        if (isset($options['return_result'])) {
+            $returnResult = true;
+            unset($options['return_result']);
+        } else {
+            $returnResult = false;
+        }
+
         if (empty($where)) {
             throw new NoSQLException('empty "where" clause for update');
         }
@@ -361,6 +368,10 @@ class MongoBase extends NoSQL
         }
 
         $row['_id'] = $id;
+        if ($returnResult) {
+            return $result;
+        }
+
         // return clean row
         return $this->decodeId($row);
     }
