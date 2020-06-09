@@ -171,13 +171,13 @@ final class Calculator {
 
 		// получаем значение операнда
 		$value_to_push = $this->default;
-		// типа операнда: константа или переменная
-		if( $operand{0}=='$' ) {
-			$key = intval(substr($operand, 1))-1;
-			$value_to_push = array_key_exists($key, $this->variables) ? $this->variables[$key] : $this->default;
-		} elseif(Assert::checkFloat($operand)) {
-			$value_to_push = floatval($operand);
-		}
+        // типа операнда: константа или переменная
+        if ($operand[0] == '$') {
+            $key = intval(substr($operand, 1)) - 1;
+            $value_to_push = array_key_exists($key, $this->variables) ? $this->variables[$key] : $this->default;
+        } elseif (Assert::checkFloat($operand)) {
+            $value_to_push = floatval($operand);
+        }
 
 		// добавляем элемент в стек для последующей подстановки в выражение
 		array_push( $this->stack, $value_to_push );
