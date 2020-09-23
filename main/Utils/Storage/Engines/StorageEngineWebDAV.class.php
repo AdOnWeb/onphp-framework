@@ -17,9 +17,10 @@ class StorageEngineWebDAV extends StorageEngineHTTP
 
     public function store($file, $desiredName)
     {
+        $uploadLink = $this->getUploadLink($desiredName);
         $sendRequest = HttpRequest::create()
             ->setMethod(HttpMethod::put())
-            ->setUrl(HttpUrl::create()->parse($this->getUploadLink($desiredName)));
+            ->setUrl(HttpUrl::create()->parse($uploadLink));
 
         /** @var CurlHttpResponse $resp */
         $curl =
@@ -27,7 +28,7 @@ class StorageEngineWebDAV extends StorageEngineHTTP
                 ->setOption(CURLOPT_PUT, true)
                 ->setOption(CURLOPT_INFILE, fopen($file, 'r'))
                 ->setOption(CURLOPT_INFILESIZE, filesize($file))
-                ->setOption(CURLOPT_TIMEOUT, 25);
+                ->setOption(CURLOPT_TIMEOUT, 2);
         if (is_array($this->uploadOptions) && isset($this->uploadOptions['userpwd'])) {
             $curl
                 ->setOption(CURLOPT_HTTPAUTH, CURLAUTH_ANY)
@@ -43,7 +44,7 @@ class StorageEngineWebDAV extends StorageEngineHTTP
             }
         };
 
-        $this->tryToDo($upload, "File ({$desiredName}) was not stored, reason: %s");
+        $this->tryToDo($upload, "File ({$desiredName}) was not stored in ({$uploadLink}), reason: %s");
 
         return $desiredName;
     }
