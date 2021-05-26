@@ -33,6 +33,7 @@ class CleanRedirectView implements View
 
     public function render($model = null)
     {
+        HeaderUtils::sendHttpStatus($this->status);
         HeaderUtils::redirectRaw($this->getLocationUrl($model));
     }
 
